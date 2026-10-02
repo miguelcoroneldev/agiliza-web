@@ -5,8 +5,6 @@ import { Image } from "astro:assets";
 import { Icon } from "astro-icon/components";
 import andrettiLogo from "../../assets/andretti-logo.png";
 
-const VIDEO_SRC = "/videos/comercial-bedon-hero.mp4";
-const VIDEO_POSTER = "/images/comercial-bedon-hero-poster.webp";
 const DEMO_URL = "/landing-generador-comercial-bedon";
 // Configurar con el número completo, incluido el código de país y sin el signo +.
 const WHATSAPP_NUMBER = "593984897480";
@@ -58,25 +56,18 @@ const comparison = [
 ---
 
 <Layout title="Propuesta para Comercial Bedón" description="Propuesta de transformación digital para Comercial Bedón: presencia, adquisición, comercio electrónico y sistemas conectados." minimalHeader>
+  <meta slot="head" name="robots" content="noindex, nofollow" />
   <main class="proposal overflow-hidden">
-    <section class="hero relative min-h-[78vh] flex items-end bg-[#102b24] text-white" aria-labelledby="proposal-title">
-      <div class="absolute inset-0" aria-hidden="true">
-        <video class="h-full w-full object-cover opacity-55" autoplay muted loop playsinline preload="metadata" poster={VIDEO_POSTER} tabindex="-1">
-          <source src={VIDEO_SRC} type="video/mp4" />
-        </video>
-        <div class="absolute inset-0 bg-[linear-gradient(90deg,rgba(8,29,23,.92)_0%,rgba(8,29,23,.58)_55%,rgba(8,29,23,.22)_100%)]"></div>
-        <div class="absolute inset-0 fallback-pattern"></div>
-      </div>
-      <Container class="relative z-10 w-full pb-16 pt-24 md:pb-24 md:pt-36">
-        <div class="max-w-4xl">
-          <div class="section-icon section-icon-dark"><Icon name="bx:bxs-briefcase-alt-2" /></div>
-          <p class="eyebrow mt-4 text-[#efbd63]">Propuesta comercial · Agiliza</p>
-          <h1 id="proposal-title" class="mt-5 text-4xl font-semibold leading-[1.04] tracking-[-.04em] sm:text-6xl lg:text-7xl">Propuesta de transformación digital para Comercial Bedón</h1>
-          <p class="mt-6 max-w-3xl text-lg leading-8 text-white/80 md:text-xl">Una ruta práctica para atraer clientes, vender por nuevos canales y tener mayor control comercial.</p>
-          <p class="mt-9 text-sm font-medium text-white/70">Lectura estimada: 10 minutos</p>
-        </div>
-      </Container>
+    <section class="hero-video">
+      <video controls playsinline preload="metadata" poster="/videos/comercial-bedon-poster.jpg">
+        <source src="/videos/comercial-bedon-hero.mp4" type="video/mp4" />
+      </video>
     </section>
+
+    <style>
+      .hero-video { width: 100%; background: #070707; }
+      .hero-video video { display: block; width: 100%; max-height: 100vh; aspect-ratio: 16/9; }
+    </style>
 
     <section class="py-24" aria-labelledby="blocks-title"><Container><div class="section-heading max-w-3xl"><div class="section-icon"><Icon name="bx:bxs-layer" /></div><p class="eyebrow mt-4">Un crecimiento progresivo</p><h2 id="blocks-title">Una transformación digital por etapas</h2><p>Comenzamos con una primera herramienta comercial y avanzamos progresivamente hasta conectar toda la operación de Comercial Bedón.</p></div><div class="mt-12 grid gap-6 md:grid-cols-2">{blocks.map((block) => <article class="card relative"><span class="number">{block.n}</span><h3>{block.title}</h3><p class="mt-4 rounded-lg bg-[#f0eadf] px-4 py-3 text-sm font-medium leading-6 text-[#5c3d0e]"><span class="block text-xs font-bold uppercase tracking-[.12em] text-[#8a5c19]">Paso</span>{block.goal}</p><p>{block.description}</p><ul class="tag-list">{block.items.map((item) => <li>{item}</li>)}</ul></article>)}</div><p class="mx-auto mt-10 max-w-3xl text-center text-base leading-7 text-slate-600">Cada etapa puede desarrollarse de manera independiente, pero todas están diseñadas para conectarse entre sí. El objetivo es comenzar con algo útil y avanzar progresivamente hacia un sistema comercial integrado.</p></Container></section>
 
