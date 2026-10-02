@@ -38,21 +38,6 @@ const blocks = [
   { n: "ETAPA 4", goal: "Conectar", title: "Conectamos las ventas con la operación", description: "Finalmente, podemos conectar la página, las campañas, los pedidos, los clientes, el inventario y la facturación mediante un sistema central de gestión. Así la información deja de estar dispersa y Comercial Bedón puede trabajar con mayor orden y control.", items: ["Unificar información", "Ordenar la operación", "Mejorar el control"] },
 ];
 
-const differentiators = [
-  ["Precio accesible", "Una primera etapa pensada para el tamaño real de la empresa y para el mercado ecuatoriano."],
-  ["Agentes de IA bien usados", "Automatizan tareas repetitivas —catálogo, contenido, atención— para que la inversión se vaya a resultados."],
-  ["Marketing con experiencia", "Alba Figuero lidera la estrategia de marketing: campañas, contenido y medición conectados a ventas."],
-];
-
-const comparison = [
-  ["Honorarios", "USD 2.500/mes los primeros 4 meses y USD 2.000/mes después", "Inversión inicial accesible, definida por etapas", true],
-  ["Equipo adicional a contratar", "Desarrollador, diseñador, community manager y asistente de datos, aparte", "Agiliza ejecuta diseño, contenido y datos con apoyo de agentes de IA", true],
-  ["Catálogo y datos", "Depuración a cargo de un pasante o asistente de datos", "Agentes de IA para clasificar, normalizar y cargar productos con supervisión humana", true],
-  ["Marketing digital", "Dirección estratégica; ejecución a cargo de un community manager", "Estrategia liderada por Alba Figuero, con experiencia en marketing", true],
-  ["Primera versión visible", "Lanzamiento objetivo en el mes 4", "Ya existe una demostración; la primera versión sale en semanas", true],
-  ["Compromiso", "Consultoría permanente desde el mes 5", "Se avanza por etapas y se invierte más solo después de validar", true],
-  ["Alcance", "Más amplio: ecommerce completo, inventarios e integraciones", "Más enfocado: empieza por lo que genera ventas y crece según resultados", false],
-];
 ---
 
 <Layout title="Propuesta para Comercial Bedón" description="Propuesta de transformación digital para Comercial Bedón: presencia, adquisición, comercio electrónico y sistemas conectados." minimalHeader>
@@ -76,15 +61,6 @@ const comparison = [
     <section class="border-y border-slate-200 bg-[#f8faf8] py-24" aria-labelledby="channel-title"><Container><div class="grid gap-14 lg:grid-cols-[.75fr_1.25fr] lg:items-center"><div class="section-heading"><div class="section-icon"><Icon name="bx:bxs-bar-chart-alt-2" /></div><p class="eyebrow mt-4">Objetivo comercial</p><h2 id="channel-title">Vender tanto en el local como en digital</h2><p>La meta es pasar progresivamente de una operación cercana al 95% presencial a una distribución 50/50. Es una dirección estratégica, no una promesa automática.</p><p class="metric-note">Se mide con ventas, pedidos, cotizaciones, clientes e ingresos originados en digital.</p></div><div class="space-y-8 rounded-3xl border border-slate-200 bg-white p-7 shadow-sm md:p-10"><div><div class="mb-3 flex justify-between gap-4"><strong>Hoy, aproximadamente</strong><span>95% presencial / 5% digital</span></div><div class="metric"><i style="width:95%">95%</i><b style="width:5%"></b></div></div><div><div class="mb-3 flex justify-between gap-4"><strong>Meta progresiva</strong><span>50% presencial / 50% digital</span></div><div class="metric"><i style="width:50%">50%</i><b style="width:50%">50%</b></div></div><div class="flex flex-wrap gap-x-5 gap-y-2 text-sm text-slate-500"><span class="legend physical">Presencial</span><span class="legend digital">Digital</span></div></div></div></Container></section>
 
     <section class="py-24" aria-labelledby="references-title"><Container><div class="section-heading max-w-3xl"><div class="section-icon"><Icon name="bx:bxs-book-open" /></div><p class="eyebrow mt-4">Referentes</p><h2 id="references-title">Tomar buenas ideas, no copiar modelos</h2><p>Toyama y Casa del Rulimán muestran dos capacidades útiles. Comercial Bedón puede adaptarlas a su portafolio, sus clientes y su territorio.</p></div><div class="mt-10 grid gap-6 lg:grid-cols-2">{references.map((reference) => <article class="card"><div class="logo-box" style={`background:${reference.logoBg}`}><img src={reference.logo} alt={`Logo de ${reference.name}`} loading="lazy" /></div><p class="eyebrow mt-6">Qué podemos aprender</p><h3>{reference.name}</h3><p>{reference.text}</p><ul class="tag-list">{reference.points.map((point) => <li>{point}</li>)}</ul></article>)}</div></Container></section>
-
-    <section class="py-24" aria-labelledby="comparison-title"><Container><div class="section-heading mx-auto max-w-3xl text-center"><div class="section-icon mx-auto"><Icon name="bx:git-compare" /></div><p class="eyebrow mt-4">Evaluación de alternativas</p><h2 id="comparison-title">Dos caminos para decidir</h2><p>Ambas propuestas buscan crear un canal digital de ventas. Cambian la inversión, quién ejecuta el trabajo y la velocidad con la que se ven resultados.</p></div>
-      <div class="compare mt-12" role="table" aria-label="Comparación entre Johny Huertas y Agiliza">
-        <div class="compare-row compare-head" role="row"><div role="columnheader"></div><div role="columnheader"><span class="plan-name">Johny Huertas</span><span class="plan-sub">Consultoría y dirección externa</span></div><div role="columnheader" class="is-agiliza"><span class="badge">Recomendada</span><span class="plan-name">Agiliza</span><span class="plan-sub">Estrategia y ejecución, con IA</span></div></div>
-        {comparison.map((row) => <div class="compare-row" role="row"><div role="rowheader" class="criterion">{row[0]}</div><div role="cell" class="other">{row[1]}</div><div role="cell" class={row[3] ? "is-agiliza win" : "is-agiliza"}><span class="mark" aria-hidden="true">{row[3] ? "✓" : "•"}</span><span>{row[2]}</span></div></div>)}
-      </div>
-      <p class="mt-4 text-center text-sm text-slate-500">Datos de Johny Huertas según su propuesta del 29 de septiembre de 2026. Pauta, plataformas y licencias se cotizan aparte en ambos casos.</p>
-      <div class="mt-12 grid gap-5 md:grid-cols-3">{differentiators.map((item) => <article class="card"><h3>{item[0]}</h3><p>{item[1]}</p></article>)}</div>
-      <p class="mx-auto mt-10 max-w-3xl border-l-2 border-[#b77a22] pl-5 text-lg leading-8 text-slate-700">Agiliza propone una primera etapa de menor inversión, demostrable y escalable: validar antes de comprometer una transformación más amplia.</p></Container></section>
 
     <section id="ejemplo" class="bg-[#102b24] py-24 text-white"><Container><div class="grid gap-10 lg:grid-cols-[1fr_auto] lg:items-end"><div class="section-heading max-w-3xl"><div class="section-icon section-icon-dark"><Icon name="bx:bxs-show" /></div><p class="eyebrow mt-4 text-[#efbd63]">Para muestra, un ejemplo concreto</p><h2>Vea cómo se sentiría para un cliente</h2><p class="text-white/70">Una demostración de cómo presentar una línea de productos y llevar al visitante hacia una consulta o cotización.</p></div><a href={DEMO_URL} class="button button-light">Ver demostración <span aria-hidden="true">→</span></a></div></Container></section>
 
