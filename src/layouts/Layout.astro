@@ -8,6 +8,9 @@ import "../styles/global.css";
 
 export interface Props {
   title: string;
+  description?: string;
+  lang?: string;
+  minimalHeader?: boolean;
 }
 
 const canonicalURL = new URL(Astro.url.pathname, Astro.site).toString();
@@ -17,15 +20,20 @@ const resolvedImageWithDomain = new URL(
   Astro.site
 ).toString();
 
-const { title } = Astro.props;
+const {
+  title,
+  description = "Agiliza ayuda a empresas a organizar, digitalizar y automatizar sus procesos comerciales.",
+  lang = "es",
+  minimalHeader = false,
+} = Astro.props;
 
 const makeTitle = title
-  ? title + " | " + "Astroship"
+  ? title + " | " + "Agiliza"
   : "Agiliza";
 ---
 
 <!doctype html>
-<html lang="en">
+<html lang={lang}>
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width" />
@@ -35,7 +43,7 @@ const makeTitle = title
     <!-- <link rel="preload" as="image" href={src} alt="Hero" /> -->
     <SEO
       title={makeTitle}
-      description="Astroship is a starter website template for Astro built with TailwindCSS."
+      description={description}
       canonical={canonicalURL}
       twitter={{
         creator: "@surjithctly",
@@ -46,17 +54,17 @@ const makeTitle = title
         basic: {
           url: canonicalURL,
           type: "website",
-          title: `Agiliza`,
+          title: makeTitle,
           image: resolvedImageWithDomain,
         },
         image: {
-          alt: "Astroship Homepage Screenshot",
+          alt: "Agiliza Soluciones",
         },
       }}
     />
   </head>
   <body class="bg-white text-[#333E48] antialiased">
-    <Navbar />
+    <Navbar minimal={minimalHeader} />
     <slot />
     <Footer />
     <style is:global>

@@ -7,45 +7,45 @@ import { Icon } from "astro-icon/components";
 
 const services = [
   {
-    title: "Gestión de Redes Sociales",
+    title: "Redes Sociales Activas",
     description:
-      "Publicaciones constantes y diseñadas en Instagram, Facebook y TikTok. Contenido generado con IA y revisado para mantener la voz de tu marca.",
+      "Publicaciones constantes en Instagram, Facebook y TikTok para que tu negocio se vea activo, profesional y genere confianza con potenciales clientes.",
     icon: "bx:bxl-instagram",
   },
   {
     title: "Publicidad Pagada (Meta Ads)",
     description:
-      "Campañas en Facebook e Instagram orientadas a resultados: tráfico, leads o ventas. Configuración, segmentación y optimización continua.",
+      "Campañas en Facebook e Instagram orientadas a resultados: más mensajes, contactos y clientes potenciales con inversión ajustada a tu presupuesto.",
     icon: "bx:bxs-bar-chart-alt-2",
   },
   {
-    title: "Generación de Leads",
+    title: "Más Contactos y Leads",
     description:
-      "Formularios, landing pages y flujos de captura conectados directamente a WhatsApp o tu CRM para que nunca pierdas un prospecto.",
+      "Formularios, landing pages y sistemas simples para que los clientes interesados te contacten fácilmente y no pierdas oportunidades.",
     icon: "bx:bxs-user-plus",
   },
   {
-    title: "Integración con WhatsApp",
+    title: "WhatsApp para Negocios",
     description:
-      "Automatiza respuestas, conecta tus formularios y mantén contacto con clientes a través de WhatsApp Business de forma ordenada y escalable.",
+      "Integramos WhatsApp Business para que clientes te escriban rápido, recibas consultas organizadas y respondas de forma más eficiente.",
     icon: "bx:bxl-whatsapp",
   },
   {
-    title: "Contenido Asistido por IA",
+    title: "Contenido Constante",
     description:
-      "Copywriting, diseño de posts y estrategia de contenido producida con sistemas de IA. Más frecuencia, menos costo, sin perder calidad.",
+      "Diseños y publicaciones frecuentes para mantener presencia online sin depender de procesos costosos ni agencias tradicionales.",
     icon: "bx:bxs-pencil",
   },
   {
-    title: "Presencia Online",
+    title: "Google Maps y Reputación",
     description:
-      "Optimización de perfil de Google, directorios locales, reseñas y consistencia de información para que te encuentren fácilmente.",
+      "Optimizamos tu perfil de Google, reseñas, fotos y presencia local para que más personas encuentren tu negocio cuando buscan servicios cerca.",
     icon: "bx:bxs-map",
   },
   {
-    title: "Reportes y Métricas",
+    title: "Reportes y Resultados",
     description:
-      "Reporte mensual con las métricas que importan: alcance, interacciones, leads generados y costo por resultado.",
+      "Reporte mensual con métricas claras: alcance, interacciones, contactos generados y desempeño de campañas para saber qué funciona.",
     icon: "bx:bxs-report",
   },
 ];
@@ -55,14 +55,19 @@ const services = [
   <Container>
     <section class="py-16">
       <div class="max-w-3xl">
-        <p class="text-sm font-semibold text-[#F15D2D]">Agiliza Soluciones</p>
+        <p class="text-sm font-semibold text-[#F15D2D]">
+          Agiliza Soluciones
+        </p>
+
         <h1 class="text-3xl font-semibold tracking-tight mt-2">
           Marketing Digital
         </h1>
+
         <p class="mt-4 text-base text-slate-600 max-w-2xl">
-          Presencia online activa, publicidad que genera resultados y
-          automatización de contacto con clientes — todo a un costo que las
-          PYMEs ecuatorianas pueden pagar sin depender de agencias tradicionales.
+          Más clientes, mejor presencia online y seguimiento real de
+          resultados. Ayudamos a negocios ecuatorianos a verse profesionales,
+          aparecer mejor en Google, recibir más contactos por WhatsApp y hacer
+          marketing sin los costos de una agencia tradicional.
         </p>
 
         <div class="mt-6 flex flex-wrap gap-3">
@@ -72,6 +77,7 @@ const services = [
           >
             Solicitar cotización
           </a>
+
           <a
             href="/pricing"
             class="inline-flex items-center rounded-lg px-4 py-2 text-sm font-medium border border-[#F15D2D] text-[#F15D2D] hover:bg-[#fff2ed] transition-colors"
@@ -86,11 +92,18 @@ const services = [
           <div class="rounded-2xl border border-black/10 p-5 hover:border-[#F15D2D] transition">
             <div class="flex items-start gap-3">
               <div class="rounded-xl border border-black/10 p-2">
-                <Icon name={s.icon} class="h-6 w-6 text-[#F15D2D]" />
+                <Icon
+                  name={s.icon}
+                  class="h-6 w-6 text-[#F15D2D]"
+                />
               </div>
+
               <div>
                 <h2 class="text-base font-semibold">{s.title}</h2>
-                <p class="mt-2 text-sm text-slate-500">{s.description}</p>
+
+                <p class="mt-2 text-sm text-slate-500">
+                  {s.description}
+                </p>
               </div>
             </div>
           </div>
@@ -98,12 +111,16 @@ const services = [
       </div>
 
       <div class="mt-14 rounded-2xl border border-black/10 p-6 bg-slate-50">
-        <h3 class="text-lg font-semibold">¿Tu negocio necesita más visibilidad?</h3>
+        <h3 class="text-lg font-semibold">
+          ¿Tu negocio necesita más clientes o visibilidad?
+        </h3>
+
         <p class="mt-2 text-sm text-slate-600 max-w-xl">
-          Sin contratos largos ni paquetes complicados. Cuéntame dónde estás y
-          qué resultado quieres lograr — armamos un plan que tenga sentido para
-          tu presupuesto.
+          Sin contratos largos ni paquetes complicados. Cuéntame dónde está tu
+          negocio, qué estás intentando lograr y armamos un plan que tenga
+          sentido para tu presupuesto.
         </p>
+
         <a
           href="/contact"
           class="mt-4 inline-flex items-center rounded-lg px-4 py-2 text-sm font-medium border border-[#F15D2D] text-[#F15D2D] hover:bg-[#fff2ed] transition-colors"
@@ -114,3 +131,4 @@ const services = [
     </section>
   </Container>
 </Layout>
+```

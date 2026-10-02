@@ -30,10 +30,12 @@ const menuitems = [
     path: "/contact",
   },
 ];
+
+const { minimal = false } = Astro.props;
 ---
 
 <Container>
-  <header class="flex flex-col lg:flex-row justify-between items-center my-5">
+  <header class:list={["flex items-center my-5", minimal ? "justify-start" : "flex-col lg:flex-row justify-between"]}>
     <Astronav>
       <div class="flex w-full lg:w-auto items-center justify-between">
         <a href="/" class="flex items-center">
@@ -43,11 +45,9 @@ const menuitems = [
     class="h-16 w-auto"
   />
 </a>
-        <div class="block lg:hidden">
-          <MenuIcon class="w-4 h-4 text-gray-800" />
-        </div>
+        {!minimal && <div class="block lg:hidden"><MenuIcon class="w-4 h-4 text-gray-800" /></div>}
       </div>
-      <MenuItems class="hidden w-full lg:w-auto mt-2 lg:flex lg:mt-0">
+      {!minimal && <MenuItems class="hidden w-full lg:w-auto mt-2 lg:flex lg:mt-0">
         <ul class="flex flex-col lg:flex-row lg:gap-3">
           {
             menuitems.map((item, index) => (
@@ -86,13 +86,13 @@ const menuitems = [
     Registro
   </Link>
 </div>
-      </MenuItems>
+      </MenuItems>}
     </Astronav>
-    <div>
+    {!minimal && <div>
       <div class="hidden lg:flex items-center gap-4">
         <a href="https://app.agilizasoluciones.org">Log in</a>
         <Link href="https://app.agilizasoluciones.org" size="md">Registro</Link>
       </div>
-    </div>
+    </div>}
   </header>
 </Container>

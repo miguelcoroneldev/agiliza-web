@@ -1,0 +1,1212 @@
+---
+// Landing de campaña: Generador a gasolina CB9000 — Comercial Bedón (Ibarra, Ecuador).
+// Página independiente (sin Layout del sitio). Los estilos van con `is:inline` para que
+// no dependan del pipeline de CSS de Vite.
+
+const site = Astro.site ?? new URL(Astro.url.origin);
+const canonical = new URL(Astro.url.pathname, site).toString();
+const abs = (path: string) => new URL(path, site).toString();
+
+const title = "Generador a gasolina CB9000 de 16 HP | Comercial Bedón";
+const description =
+  "Generador a gasolina CB9000 de 16 HP y 7,5 kW con arranque eléctrico y salidas de 110/220 V. Respaldo de energía para su hogar, negocio o finca. Cotice por WhatsApp.";
+
+const WA = "593986381994";
+const PHONE = "098 638 1994";
+const FB = "https://www.facebook.com/comercialbedon";
+const MAPS =
+  "https://www.google.com/maps/search/?api=1&query=" +
+  encodeURIComponent("Comercial Bedón, Av. Cristóbal de Troya, Ibarra, Ecuador");
+const wa = (msg: string) => `https://wa.me/${WA}?text=${encodeURIComponent(msg)}`;
+const MSG = {
+  main: "Hola Comercial Bedón, vi la página del generador CB9000 (16 HP) y quiero una cotización.",
+  specs: "Hola Comercial Bedón, quiero la ficha técnica y la cotización del generador CB9000 (16 HP).",
+  faq: "Hola Comercial Bedón, tengo una pregunta sobre el generador CB9000.",
+  calc: "Hola Comercial Bedón, quiero cotizar el generador CB9000 (16 HP). ¿Me ayudan a calcular mi consumo?",
+};
+const fmt = (n: number) => String(n).replace(/\B(?=(\d{3})+(?!\d))/g, ".");
+
+const keySpecs = [
+  { value: "16", unit: "HP", label: "Motor a gasolina" },
+  { value: "7,5", unit: "kW", label: "Potencia nominal" },
+  { value: "8,0", unit: "kW", label: "Potencia máxima" },
+  { value: "110/220", unit: "V", label: "Doble voltaje" },
+  { value: "25", unit: "L", label: "Tanque de combustible" },
+];
+
+const stats = [
+  { label: "Generación de Coca Codo Sinclair", value: "−27", unit: "%", down: true, detail: "Bajó de 1.154 MW en agosto a 845 MW el 29 de septiembre." },
+  { label: "Industrias con desconexión programada", value: "181", detail: "Desde el 1 de octubre, la desconexión pasó de 24 a 48 horas." },
+  { label: "Brecha de generación estimada", value: "1.200", unit: "MW", detail: "Entre 1.000 y 1.200 MW que, según el ministro, deben cubrirse con generación térmica." },
+  { label: "Apagones diarios en 2024", value: "14", unit: "h", detail: "En el último estiaje severo, los cortes llegaron a 14 horas al día." },
+];
+
+const sources = [
+  { label: "Infobae, 1 oct. 2026", href: "https://www.infobae.com/america/america-latina/2026/10/01/el-gobierno-extendio-a-dos-dias-la-desconexion-electrica-de-181-industrias-en-ecuador/" },
+  { label: "El Diario, 20 sep. 2026", href: "https://www.eldiario.ec/ecuador/cortes-de-luz-en-ecuador-el-nino-gobierno-responde-20092026/" },
+  { label: "Extra", href: "https://www.extra.ec/noticia/ecuador/vuelven-apagones-ecuador-gobierno-desconecta-industrias-sequia-e-insta-reducir-consumo-163405.html" },
+  { label: "Infobae, 25 oct. 2024", href: "https://www.infobae.com/america/agencias/2024/10/25/ecuador-aumenta-de-8-a-14-horas-diarias-los-cortes-de-luz-ante-una-crisis-energetica-sin-precedentes/" },
+];
+
+const uses = [
+  { icon: "i-home", title: "Hogar", text: "Refrigeradora, luces, internet y bomba de agua funcionando mientras la red se recupera.", tags: ["Refrigeradora", "Iluminación", "Internet", "Bomba de agua"] },
+  { icon: "i-store", title: "Negocio", text: "Caja, refrigeración y atención sin interrupciones. Cada hora sin luz es una hora sin ventas.", tags: ["Congeladores", "Punto de venta", "Iluminación"] },
+  { icon: "i-leaf", title: "Finca", text: "Ordeño, bombeo y cuartos fríos en el campo, donde cada corte afecta la producción.", tags: ["Ordeño", "Bombeo", "Cuarto frío"] },
+  { icon: "i-hat", title: "Obra y taller", text: "Energía portátil de 110 y 220 V para herramientas y compresores, lejos de cualquier toma.", tags: ["Herramientas", "Compresor", "Iluminación"] },
+];
+
+// Consumos típicos de referencia (W) y sobrecarga adicional estimada al arrancar motores.
+const appliances = [
+  { id: "fridge", name: "Refrigeradora", watts: 200, surge: 600 },
+  { id: "freezer", name: "Congelador", watts: 300, surge: 900 },
+  { id: "lights", name: "Iluminación LED (10 focos)", watts: 100, surge: 0 },
+  { id: "tv", name: "TV y decodificador", watts: 200, surge: 0 },
+  { id: "net", name: "Internet y computadoras", watts: 250, surge: 0 },
+  { id: "pump", name: "Bomba de agua 1 HP", watts: 750, surge: 1500 },
+  { id: "wash", name: "Lavadora", watts: 500, surge: 800 },
+  { id: "micro", name: "Microondas", watts: 1200, surge: 0 },
+  { id: "shower", name: "Ducha eléctrica", watts: 3500, surge: 0 },
+  { id: "tools", name: "Herramientas eléctricas", watts: 1000, surge: 600 },
+  { id: "compressor", name: "Compresor 1,5 HP", watts: 1100, surge: 2000 },
+  { id: "milk", name: "Equipo de ordeño", watts: 750, surge: 1200 },
+];
+const presets = [
+  { label: "Casa", ids: ["fridge", "lights", "tv", "net", "pump", "wash"] },
+  { label: "Tienda", ids: ["freezer", "fridge", "lights", "net", "micro"] },
+  { label: "Finca", ids: ["milk", "pump", "freezer", "lights"] },
+];
+
+// Coordenadas (%) sobre /images/cb9000.webp
+const features = [
+  { n: 1, x: 19.9, y: 21.5, title: "Panel de control completo", text: "Voltímetro, disyuntor de protección, luz de alerta de aceite e interruptor con llave, todo al frente." },
+  { n: 2, x: 56.3, y: 29.7, title: "Doble voltaje 110 / 220 V", text: "Dos tomas de 110 V y una de 110/220 V, más una salida de 12 V DC." },
+  { n: 3, x: 39.4, y: 60.9, title: "Arranque eléctrico", text: "Encendido con llave y batería de 12 V, con arranque manual de respaldo." },
+  { n: 4, x: 88.9, y: 28.4, title: "Motor de 16 HP", text: "Potencia para cargas exigentes: refrigeración, bombas de agua y herramientas." },
+  { n: 5, x: 82.6, y: 11.2, title: "Tanque de 25 litros", text: "Más horas de trabajo entre cada carga de gasolina." },
+  { n: 6, x: 53.2, y: 82.4, title: "Chasis tubular con ruedas", text: "Una estructura que protege el equipo y ruedas para moverlo con facilidad." },
+];
+
+const specGroups = [
+  { icon: "i-zap", title: "Motor y potencia", rows: [["Motor", "16 HP a gasolina"], ["Potencia nominal", "7,5 kW"], ["Potencia máxima", "8,0 kW"], ["Arranque", "Manual y eléctrico"]] },
+  { icon: "i-plug", title: "Salidas eléctricas", rows: [["Tensión", "110 V / 220 V"], ["Tomas AC", "2 × 110 V · 1 × 110/220 V"], ["Salida DC", "12 V"], ["Protección", "Disyuntor"]] },
+  { icon: "i-fuel", title: "Combustible y estructura", rows: [["Combustible", "Gasolina"], ["Tanque", "25 L"], ["Indicadores", "Voltímetro y alerta de aceite"], ["Chasis", "Tubular con ruedas"]] },
+];
+
+const pillars = [
+  { icon: "i-shield", title: "Garantía", text: "Su generador respaldado por Comercial Bedón. Le explicamos las condiciones al cotizar." },
+  { icon: "i-wrench", title: "Servicio técnico autorizado", text: "Mantenimiento y diagnóstico con técnicos que conocen su equipo." },
+  { icon: "i-package", title: "Repuestos originales", text: "Piezas originales para mantener su generador en buen estado." },
+  { icon: "i-chat", title: "Asesoría experta", text: "Le ayudamos a elegir la potencia correcta antes de comprar, sin compromiso." },
+];
+const branches = ["Obelisco", "Otavalo", "Apuela", "Cayambe"];
+
+const steps = [
+  { title: "Escríbanos", text: "Cuéntenos por WhatsApp qué quiere mantener encendido: casa, negocio, finca u obra." },
+  { title: "Le asesoramos", text: "Confirmamos si el CB9000 cubre su consumo y resolvemos sus dudas técnicas." },
+  { title: "Listo para el apagón", text: "Reciba su cotización, confirme disponibilidad y retire su generador." },
+];
+
+const faqs = [
+  { q: "¿Cuánto cuesta el generador CB9000?", a: `Le enviamos la cotización actualizada por WhatsApp. Escríbanos al ${PHONE} y un asesor le responde directamente.` },
+  { q: "¿Cuánta energía entrega?", a: "7,5 kW de potencia nominal para uso continuo y 8,0 kW de potencia máxima para picos cortos, como el arranque de motores." },
+  { q: "¿Tiene arranque eléctrico?", a: "Sí. Se enciende con llave gracias a su batería de 12 V, y conserva el arranque manual de respaldo." },
+  { q: "¿Sirve para 110 V y 220 V?", a: "Sí. Tiene dos tomas de 110 V y una de 110/220 V, además de una salida de 12 V DC." },
+  { q: "¿Puedo conectarlo al tablero de mi casa o negocio?", a: "Sí, pero solo mediante un tablero o interruptor de transferencia instalado por un electricista calificado. Así se evitan retornos de corriente a la red, peligrosos para usted y para los técnicos de la empresa eléctrica." },
+  { q: "¿Dónde debo ubicarlo?", a: "Siempre al aire libre, en un lugar ventilado y lejos de puertas y ventanas. Los generadores a gasolina emiten monóxido de carbono, un gas que no se ve ni se huele." },
+  { q: "¿Tiene garantía y servicio técnico?", a: "Sí. Comercial Bedón respalda su equipo con garantía, servicio técnico autorizado y repuestos originales. Su asesor le explica las condiciones al cotizar." },
+  { q: "¿Puedo verlo antes de comprar?", a: "Escríbanos para confirmar disponibilidad y coordinar su visita a nuestra matriz en Ibarra o al punto de atención más cercano." },
+];
+
+const jsonLd = {
+  "@context": "https://schema.org",
+  "@graph": [
+    {
+      "@type": "Product",
+      "@id": canonical + "#producto",
+      name: "Generador a gasolina CB9000 de 16 HP",
+      sku: "CB9000",
+      brand: { "@type": "Brand", name: "Comercial Bedón" },
+      image: [abs("/images/cb9000.webp")],
+      description,
+    },
+    {
+      "@type": "HardwareStore",
+      "@id": canonical + "#tienda",
+      name: "Comercial Bedón",
+      image: abs("/logos/comercial-bedon.png"),
+      telephone: "+593986381994",
+      address: {
+        "@type": "PostalAddress",
+        streetAddress: "Av. Cristóbal de Troya 5-165 y Luis Fernando Villamar",
+        addressLocality: "Ibarra",
+        addressRegion: "Imbabura",
+        addressCountry: "EC",
+      },
+      openingHoursSpecification: [
+        { "@type": "OpeningHoursSpecification", dayOfWeek: ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday"], opens: "08:00", closes: "18:00" },
+      ],
+      sameAs: [FB],
+    },
+    {
+      "@type": "FAQPage",
+      mainEntity: faqs.map((f) => ({ "@type": "Question", name: f.q, acceptedAnswer: { "@type": "Answer", text: f.a } })),
+    },
+  ],
+};
+---
+
+<!doctype html>
+<html lang="es-EC">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+    <title>{title}</title>
+    <meta name="description" content={description} />
+    <link rel="canonical" href={canonical} />
+    <meta name="theme-color" content="#09090B" />
+    <link rel="icon" type="image/png" href="/logos/comercial-bedon.png" />
+    <link rel="apple-touch-icon" href="/logos/comercial-bedon.png" />
+
+    <meta property="og:type" content="product" />
+    <meta property="og:locale" content="es_EC" />
+    <meta property="og:site_name" content="Comercial Bedón" />
+    <meta property="og:title" content={title} />
+    <meta property="og:description" content={description} />
+    <meta property="og:url" content={canonical} />
+    <meta property="og:image" content={abs("/images/og-generador-cb9000.jpg")} />
+    <meta property="og:image:width" content="1200" />
+    <meta property="og:image:height" content="630" />
+    <meta property="og:image:alt" content="Generador a gasolina CB9000 de 16 HP de Comercial Bedón" />
+    <meta name="twitter:card" content="summary_large_image" />
+
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link href="https://fonts.googleapis.com/css2?family=Geist:wght@300..800&family=Geist+Mono:wght@400..600&display=swap" rel="stylesheet" />
+    <link
+      rel="preload"
+      as="image"
+      href="/images/cb9000.webp"
+      imagesrcset="/images/cb9000-720.webp 720w, /images/cb9000.webp 1191w"
+      imagesizes="(max-width: 900px) 90vw, 620px"
+      fetchpriority="high"
+    />
+
+    <script is:inline>document.documentElement.classList.add("js");</script>
+    <script type="application/ld+json" set:html={JSON.stringify(jsonLd)}></script>
+
+    <style is:inline>
+      /* ---------- Tokens ---------- */
+      :root {
+        --red: #e10f1a;
+        --red-600: #c70d17;
+        --red-400: #ff4d55;
+        --ink-950: #09090b;
+        --ink-900: #0f0f12;
+        --ink-850: #141418;
+        --ink-800: #1b1b20;
+        --line-d: rgba(255, 255, 255, 0.08);
+        --line-d2: rgba(255, 255, 255, 0.14);
+        --on-d: #fafafa;
+        --on-d2: #a1a1aa;
+        --on-d3: #8a8a93;
+        --paper: #ffffff;
+        --paper-2: #f6f6f3;
+        --line: #e4e4df;
+        --text: #0a0a0b;
+        --text-2: #52525b;
+        --text-3: #6b6b74;
+        --good: #0ca30c;
+        --warning: #fab219;
+        --critical: #d03b3b;
+        --wa: #22c35e;
+        --r: 18px;
+        --r-lg: 24px;
+        --r-xl: 32px;
+        --font: "Geist", ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+        --mono: "Geist Mono", ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+        --gutter: clamp(20px, 4vw, 40px);
+        --section: clamp(88px, 11vw, 144px);
+        --ease: cubic-bezier(0.2, 0.7, 0.2, 1);
+      }
+
+      /* ---------- Base ---------- */
+      *, *::before, *::after { box-sizing: border-box; }
+      html { -webkit-text-size-adjust: 100%; scroll-behavior: smooth; background: var(--ink-950); }
+      body {
+        margin: 0;
+        font-family: var(--font);
+        font-size: 16px;
+        line-height: 1.6;
+        color: var(--text);
+        background: var(--ink-950);
+        -webkit-font-smoothing: antialiased;
+        -moz-osx-font-smoothing: grayscale;
+        text-rendering: optimizeLegibility;
+      }
+      img, svg { display: block; max-width: 100%; }
+      img { height: auto; }
+      a { color: inherit; text-decoration: none; }
+      button { font: inherit; color: inherit; background: none; border: 0; padding: 0; cursor: pointer; }
+      h1, h2, h3, p, ul, ol, dl, dd, figure { margin: 0; }
+      ul, ol { padding: 0; list-style: none; }
+      ::selection { background: var(--red); color: #fff; }
+      :focus-visible { outline: 2px solid var(--red); outline-offset: 3px; border-radius: 8px; }
+      .dark :focus-visible, .hero :focus-visible, .site-header :focus-visible { outline-color: #fff; }
+      .sr-only { position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px; overflow: hidden; clip: rect(0, 0, 0, 0); white-space: nowrap; border: 0; }
+      .skip { position: absolute; left: 16px; top: -60px; z-index: 100; padding: 10px 16px; border-radius: 10px; background: #fff; color: #000; font-weight: 600; transition: top 0.2s; }
+      .skip:focus { top: 12px; }
+      .container { width: min(100% - 2 * var(--gutter), 1200px); margin-inline: auto; }
+      section[id] { scroll-margin-top: 67px; }
+      .icon { width: 20px; height: 20px; flex: none; fill: none; stroke: currentColor; stroke-width: 1.75; stroke-linecap: round; stroke-linejoin: round; }
+
+      .section { padding-block: var(--section); background: var(--paper); }
+      .dark { background: var(--ink-950); color: var(--on-d); }
+      .tone { background: var(--paper-2); }
+      .section-head { display: grid; gap: 20px; max-width: 760px; margin-bottom: clamp(48px, 6vw, 72px); }
+      .section-head.center { margin-inline: auto; text-align: center; justify-items: center; }
+      .eyebrow { display: inline-flex; align-items: center; gap: 10px; font-family: var(--mono); font-size: 12px; font-weight: 500; letter-spacing: 0.14em; text-transform: uppercase; color: var(--red); }
+      .eyebrow::before { content: ""; width: 18px; height: 1px; background: currentColor; }
+      .dark .eyebrow { color: var(--red-400); }
+      .h2 { font-size: clamp(2.25rem, 4.4vw, 3.75rem); line-height: 1.02; letter-spacing: -0.035em; font-weight: 600; text-wrap: balance; }
+      .lead { font-size: clamp(1.0625rem, 1.4vw, 1.1875rem); line-height: 1.6; color: var(--text-2); text-wrap: pretty; }
+      .dark .lead, .hero .lead { color: var(--on-d2); }
+
+      /* ---------- Buttons ---------- */
+      .btn { --h: 52px; display: inline-flex; align-items: center; justify-content: center; gap: 10px; height: var(--h); padding: 0 24px; border-radius: 999px; font-size: 15px; font-weight: 600; letter-spacing: -0.01em; white-space: nowrap; transition: background-color 0.2s, border-color 0.2s, box-shadow 0.2s, transform 0.2s var(--ease); }
+      .btn .icon { width: 18px; height: 18px; }
+      .btn:active { transform: translateY(1px); }
+      .btn .arrow { transition: transform 0.2s var(--ease); }
+      .btn:hover .arrow { transform: translateX(3px); }
+      .btn-primary { background: var(--red); color: #fff; box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.18), 0 10px 30px -10px rgba(225, 15, 26, 0.75); }
+      .btn-primary:hover { background: var(--red-600); box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.18), 0 14px 34px -10px rgba(225, 15, 26, 0.9); }
+      .btn-ghost { border: 1px solid var(--line-d2); background: rgba(255, 255, 255, 0.04); color: #fff; }
+      .btn-ghost:hover { background: rgba(255, 255, 255, 0.09); border-color: rgba(255, 255, 255, 0.26); }
+      .btn-outline { border: 1px solid var(--line); background: #fff; color: var(--text); }
+      .btn-outline:hover { border-color: #cfcfc8; background: var(--paper-2); }
+      .btn-lg { --h: 56px; padding: 0 28px; font-size: 16px; }
+      .btn-sm { --h: 40px; padding: 0 16px; font-size: 14px; }
+      .btn-block { width: 100%; }
+
+      /* ---------- Announcement + header ---------- */
+      .announce { background: var(--ink-950); color: var(--on-d2); font-size: 13.5px; border-bottom: 1px solid var(--line-d); }
+      .announce .container { display: flex; align-items: center; justify-content: center; gap: 12px; min-height: 42px; padding-block: 8px; text-align: center; }
+      .announce strong { color: #fff; font-weight: 600; }
+      .announce a { color: #fff; white-space: nowrap; text-decoration: underline; text-underline-offset: 3px; text-decoration-color: rgba(255, 255, 255, 0.35); }
+      .announce a:hover { text-decoration-color: #fff; }
+      .pulse { position: relative; width: 8px; height: 8px; flex: none; border-radius: 50%; background: var(--red-400); }
+      .pulse::after { content: ""; position: absolute; inset: 0; border-radius: 50%; background: inherit; animation: ping 1.8s cubic-bezier(0, 0, 0.2, 1) infinite; }
+      @keyframes ping { 75%, 100% { transform: scale(2.6); opacity: 0; } }
+
+      .site-header { position: sticky; top: 0; z-index: 50; background: rgba(9, 9, 11, 0.72); -webkit-backdrop-filter: saturate(1.6) blur(18px); backdrop-filter: saturate(1.6) blur(18px); border-bottom: 1px solid transparent; transition: background-color 0.3s, border-color 0.3s; }
+      .site-header.is-scrolled { background: rgba(9, 9, 11, 0.92); border-bottom-color: var(--line-d); }
+      .site-header .container { display: flex; align-items: center; justify-content: space-between; gap: 24px; height: 68px; }
+      .brand img { width: auto; height: 34px; }
+      .nav { display: flex; gap: 4px; }
+      .nav a { padding: 8px 14px; border-radius: 999px; font-size: 14px; font-weight: 500; color: var(--on-d2); transition: color 0.2s, background-color 0.2s; }
+      .nav a:hover { color: #fff; background: rgba(255, 255, 255, 0.06); }
+
+      /* ---------- Hero ---------- */
+      .hero { position: relative; overflow: hidden; isolation: isolate; background: var(--ink-950); color: var(--on-d); }
+      .hero::before { content: ""; position: absolute; inset: 0; z-index: -1; background-image: linear-gradient(rgba(255, 255, 255, 0.045) 1px, transparent 1px), linear-gradient(90deg, rgba(255, 255, 255, 0.045) 1px, transparent 1px); background-size: 64px 64px; -webkit-mask-image: radial-gradient(ellipse 70% 65% at 70% 40%, #000 10%, transparent 75%); mask-image: radial-gradient(ellipse 70% 65% at 70% 40%, #000 10%, transparent 75%); }
+      .hero::after { content: ""; position: absolute; inset: 0; z-index: -2; background: radial-gradient(46% 55% at 73% 50%, rgba(225, 15, 26, 0.3), transparent 70%), radial-gradient(36% 42% at 8% 0%, rgba(255, 255, 255, 0.07), transparent 70%); }
+      .hero-grid { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1.08fr); align-items: center; gap: clamp(32px, 5vw, 72px); padding-block: clamp(56px, 8vw, 104px) clamp(48px, 6vw, 88px); }
+      .hero-copy { display: grid; justify-items: start; gap: 28px; }
+      .badge { display: inline-flex; align-items: center; gap: 10px; padding: 5px 14px 5px 5px; border-radius: 999px; border: 1px solid var(--line-d2); background: rgba(255, 255, 255, 0.04); font-size: 13.5px; color: var(--on-d2); }
+      .badge b { padding: 3px 10px; border-radius: 999px; background: var(--red); color: #fff; font-size: 12px; font-weight: 600; letter-spacing: 0.02em; }
+      .hero h1 { font-size: clamp(3.25rem, 7.2vw, 6.25rem); line-height: 0.94; letter-spacing: -0.05em; font-weight: 600; }
+      .hero h1 span { display: block; padding-bottom: 0.04em; }
+      .hero h1 .dim { color: rgba(255, 255, 255, 0.36); }
+      .hero h1 .lit { background: linear-gradient(180deg, #fff 35%, #d4d4d8); -webkit-background-clip: text; background-clip: text; color: transparent; }
+      .hero .lead { max-width: 540px; }
+      .hero .lead strong { color: #fff; font-weight: 600; }
+      .cta-row { display: flex; flex-wrap: wrap; gap: 12px; }
+      .proof { display: flex; flex-wrap: wrap; gap: 10px 22px; font-size: 14px; color: var(--on-d2); }
+      .proof li { display: flex; align-items: center; gap: 8px; }
+      .proof .icon { width: 16px; height: 16px; stroke-width: 2.25; color: var(--red-400); }
+
+      .stage { position: relative; justify-self: center; width: 100%; max-width: 640px; }
+      .stage-glow { position: absolute; inset: 8% 6% 16%; z-index: 0; border-radius: 50%; background: radial-gradient(closest-side, rgba(225, 15, 26, 0.5), rgba(225, 15, 26, 0)); filter: blur(30px); }
+      .stage-floor { position: absolute; left: 6%; right: 4%; bottom: 1%; z-index: 0; height: 10%; border-radius: 50%; background: radial-gradient(closest-side, rgba(0, 0, 0, 0.9), transparent); filter: blur(10px); }
+      .stage-img { position: relative; z-index: 1; width: 100%; filter: drop-shadow(0 30px 40px rgba(0, 0, 0, 0.55)); animation: float 7s ease-in-out infinite; }
+      @keyframes float { 50% { transform: translateY(-8px); } }
+      .chip { position: absolute; z-index: 2; display: flex; align-items: center; gap: 12px; padding: 12px 18px 12px 12px; border-radius: 16px; border: 1px solid rgba(255, 255, 255, 0.12); background: rgba(20, 20, 24, 0.62); -webkit-backdrop-filter: blur(14px); backdrop-filter: blur(14px); box-shadow: 0 20px 40px -12px rgba(0, 0, 0, 0.6); }
+      .chip-ico { display: grid; place-items: center; width: 36px; height: 36px; border-radius: 10px; background: rgba(225, 15, 26, 0.16); color: var(--red-400); }
+      .chip-ico .icon { width: 18px; height: 18px; }
+      .chip strong { display: block; font-size: 19px; line-height: 1.15; font-weight: 600; letter-spacing: -0.02em; color: #fff; }
+      .chip span { display: block; font-size: 12.5px; color: var(--on-d2); }
+      .chip-a { left: -4%; bottom: 9%; }
+      .chip-b { right: -3%; top: 3%; }
+
+      @keyframes rise { from { opacity: 0; transform: translateY(18px); } to { opacity: 1; transform: none; } }
+      .hero-copy > * { animation: rise 0.9s var(--ease) both; }
+      .hero-copy > :nth-child(2) { animation-delay: 0.06s; }
+      .hero-copy > :nth-child(3) { animation-delay: 0.12s; }
+      .hero-copy > :nth-child(4) { animation-delay: 0.18s; }
+      .hero-copy > :nth-child(5) { animation-delay: 0.24s; }
+      .stage { animation: rise 1.1s var(--ease) 0.15s both; }
+
+      /* ---------- Spec bar ---------- */
+      .specbar { background: var(--ink-950); color: var(--on-d); }
+      .specbar ul { display: grid; grid-template-columns: repeat(5, minmax(0, 1fr)); border-top: 1px solid var(--line-d); }
+      .specbar li { padding: 30px 24px; border-left: 1px solid var(--line-d); }
+      .specbar li:first-child { padding-left: 0; border-left: 0; }
+      .spec-v { font-size: clamp(1.75rem, 2.6vw, 2.375rem); font-weight: 600; line-height: 1.1; letter-spacing: -0.035em; }
+      .spec-v small { margin-left: 4px; font-size: 0.5em; font-weight: 500; letter-spacing: 0; color: var(--on-d2); }
+      .spec-l { margin-top: 6px; font-size: 13.5px; color: var(--on-d2); }
+
+      /* ---------- Context ---------- */
+      .stats { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 16px; }
+      .stat { display: flex; flex-direction: column; gap: 14px; padding: 28px; border-radius: var(--r-lg); border: 1px solid var(--line); background: #fff; box-shadow: 0 1px 2px rgba(10, 10, 11, 0.04); }
+      .stat-label { font-size: 14.5px; font-weight: 600; line-height: 1.35; }
+      .stat-value { display: flex; align-items: center; gap: 10px; font-size: clamp(2.5rem, 3.6vw, 3.25rem); font-weight: 600; line-height: 1; letter-spacing: -0.045em; }
+      .stat-value > span { white-space: nowrap; }
+      .stat-value small { margin-left: 5px; font-size: 0.42em; font-weight: 600; letter-spacing: -0.01em; color: var(--text-3); }
+      @media (min-width: 1101px) { .stat-label { min-height: 2.7em; } }
+      .stat-delta { display: grid; place-items: center; width: 30px; height: 30px; border-radius: 9px; background: rgba(208, 59, 59, 0.1); color: var(--critical); }
+      .stat-delta .icon { width: 17px; height: 17px; stroke-width: 2.25; }
+      .stat-detail { margin-top: auto; font-size: 14.5px; line-height: 1.55; color: var(--text-2); }
+      .note { display: grid; grid-template-columns: auto 1fr; gap: 16px; margin-top: 16px; padding: 24px 28px; border-radius: var(--r-lg); border: 1px solid var(--line); background: #fff; }
+      .note > .icon { width: 22px; height: 22px; margin-top: 2px; }
+      .note p { font-size: 15.5px; line-height: 1.7; color: var(--text-2); }
+      .note strong { color: var(--text); }
+      .sources { display: flex; flex-wrap: wrap; gap: 6px 18px; margin-top: 20px; font-size: 13px; color: var(--text-3); }
+      .sources a { text-decoration: underline; text-underline-offset: 3px; text-decoration-color: #c9c9c2; }
+      .sources a:hover { color: var(--text); }
+
+      /* ---------- Uses ---------- */
+      .uses { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 16px; }
+      .use { display: flex; flex-direction: column; gap: 16px; padding: 28px; border-radius: var(--r-lg); border: 1px solid var(--line); background: var(--paper-2); transition: transform 0.3s var(--ease), box-shadow 0.3s, background-color 0.3s; }
+      .use:hover { transform: translateY(-4px); background: #fff; box-shadow: 0 24px 48px -24px rgba(10, 10, 11, 0.25); }
+      .use-ico { display: grid; place-items: center; width: 48px; height: 48px; border-radius: 14px; border: 1px solid var(--line); background: #fff; color: var(--red); }
+      .use-ico .icon { width: 22px; height: 22px; }
+      .use h3 { font-size: 22px; font-weight: 600; letter-spacing: -0.02em; }
+      .use p { font-size: 15px; line-height: 1.6; color: var(--text-2); }
+      .tags { display: flex; flex-wrap: wrap; gap: 6px; margin-top: auto; padding-top: 8px; }
+      .tags li { padding: 5px 10px; border-radius: 999px; border: 1px solid var(--line); background: #fff; font-size: 12.5px; color: var(--text-2); }
+
+      /* ---------- Calculator ---------- */
+      .calc-section { position: relative; overflow: hidden; isolation: isolate; }
+      .calc-section::before { content: ""; position: absolute; z-index: -1; width: 900px; height: 640px; right: -320px; top: -220px; background: radial-gradient(closest-side, rgba(225, 15, 26, 0.18), transparent); pointer-events: none; }
+      .calc { display: grid; grid-template-columns: minmax(0, 1.45fr) minmax(0, 1fr); gap: 24px; align-items: start; }
+      .presets { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; margin-bottom: 18px; }
+      .presets-label { margin-right: 6px; font-size: 13.5px; color: var(--on-d3); }
+      .preset { height: 36px; padding: 0 16px; border-radius: 999px; border: 1px solid var(--line-d2); background: rgba(255, 255, 255, 0.03); font-size: 14px; font-weight: 500; color: var(--on-d); transition: background-color 0.2s, color 0.2s, border-color 0.2s; }
+      .preset:hover { background: rgba(255, 255, 255, 0.08); }
+      .preset[aria-pressed="true"] { border-color: #fff; background: #fff; color: var(--ink-950); }
+      .preset-clear { color: var(--on-d2); }
+      .items { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px; }
+      .item { position: relative; display: flex; align-items: center; gap: 14px; min-height: 60px; padding: 14px 16px; border-radius: 14px; border: 1px solid var(--line-d); background: var(--ink-900); cursor: pointer; transition: border-color 0.2s, background-color 0.2s; }
+      .item:hover { border-color: var(--line-d2); background: var(--ink-850); }
+      .item input { position: absolute; opacity: 0; width: 1px; height: 1px; }
+      .box { display: grid; place-items: center; width: 22px; height: 22px; flex: none; border-radius: 7px; border: 1.5px solid rgba(255, 255, 255, 0.28); transition: background-color 0.15s, border-color 0.15s; }
+      .box .icon { width: 14px; height: 14px; stroke-width: 3; color: #fff; opacity: 0; transform: scale(0.6); transition: opacity 0.15s, transform 0.15s; }
+      .item input:checked + .box { border-color: var(--red); background: var(--red); }
+      .item input:checked + .box .icon { opacity: 1; transform: none; }
+      .item input:focus-visible + .box { outline: 2px solid #fff; outline-offset: 2px; }
+      .item:has(input:checked) { border-color: rgba(225, 15, 26, 0.55); background: rgba(225, 15, 26, 0.07); }
+      .item-name { flex: 1; font-size: 15px; font-weight: 500; line-height: 1.3; }
+      .item-w { font-family: var(--mono); font-size: 12.5px; color: var(--on-d3); white-space: nowrap; }
+
+      .result { position: sticky; top: 92px; display: grid; gap: 18px; padding: 28px; border-radius: var(--r-xl); border: 1px solid var(--line-d2); background: linear-gradient(180deg, var(--ink-850), var(--ink-900)); box-shadow: 0 40px 80px -40px rgba(0, 0, 0, 0.8); }
+      .result-label { font-size: 14px; color: var(--on-d2); }
+      .result-value { display: flex; align-items: baseline; gap: 6px; margin-top: -6px; font-size: clamp(3rem, 5vw, 4rem); font-weight: 600; line-height: 1; letter-spacing: -0.05em; }
+      .result-value small { font-size: 18px; font-weight: 500; letter-spacing: 0; color: var(--on-d2); }
+      .result-cap { margin-top: -10px; font-size: 14px; color: var(--on-d3); }
+      .meter { --c: transparent; --t: rgba(255, 255, 255, 0.08); height: 10px; border-radius: 999px; background: var(--t); overflow: hidden; transition: background-color 0.3s; }
+      .meter-fill { display: block; width: 0; height: 100%; border-radius: 999px; background: var(--c); transition: width 0.5s var(--ease), background-color 0.3s; }
+      .meter-scale { display: flex; justify-content: space-between; margin-top: -10px; font-family: var(--mono); font-size: 11.5px; color: var(--on-d3); }
+      .calc[data-state="good"] .meter { --c: var(--good); --t: rgba(12, 163, 12, 0.16); }
+      .calc[data-state="tight"] .meter, .calc[data-state="surge"] .meter { --c: var(--warning); --t: rgba(250, 178, 25, 0.16); }
+      .calc[data-state="over"] .meter { --c: var(--critical); --t: rgba(208, 59, 59, 0.22); }
+      .status { display: flex; align-items: center; gap: 10px; font-size: 15px; font-weight: 600; color: #fff; }
+      .status .icon { display: none; width: 20px; height: 20px; }
+      .s-none { color: var(--on-d3); }
+      .s-good { color: var(--good); }
+      .s-warn { color: var(--warning); }
+      .s-over { color: var(--critical); }
+      .calc[data-state="none"] .s-none, .calc[data-state="good"] .s-good, .calc[data-state="tight"] .s-warn, .calc[data-state="surge"] .s-warn, .calc[data-state="over"] .s-over { display: block; }
+      .status-text { min-height: 3.2em; margin-top: -10px; font-size: 14.5px; color: var(--on-d2); }
+      .rows { border-top: 1px solid var(--line-d); }
+      .rows div { display: flex; justify-content: space-between; gap: 12px; padding: 12px 0; border-bottom: 1px solid var(--line-d); font-size: 14px; }
+      .rows dt { color: var(--on-d2); }
+      .rows dd { font-weight: 600; font-variant-numeric: tabular-nums; }
+      .result-note { font-size: 12.5px; line-height: 1.55; color: var(--on-d3); }
+
+      /* ---------- Features (hotspots) ---------- */
+      .features { display: grid; grid-template-columns: minmax(0, 1.15fr) minmax(0, 0.85fr); gap: clamp(32px, 5vw, 64px); align-items: center; }
+      .showcase { position: relative; overflow: hidden; padding: clamp(20px, 4vw, 48px); border-radius: var(--r-xl); border: 1px solid var(--line); background: radial-gradient(80% 70% at 50% 40%, #fff, #ebebe6); }
+      .showcase-inner { position: relative; }
+      .showcase img { width: 100%; filter: drop-shadow(0 28px 28px rgba(10, 10, 11, 0.22)); }
+      .spot { position: absolute; left: var(--x); top: var(--y); z-index: 2; display: grid; place-items: center; width: 32px; height: 32px; margin: -16px 0 0 -16px; border-radius: 50%; background: #fff; color: var(--text); font-family: var(--mono); font-size: 12.5px; font-weight: 600; box-shadow: 0 0 0 1px rgba(10, 10, 11, 0.08), 0 6px 16px rgba(10, 10, 11, 0.28); transition: transform 0.25s var(--ease), background-color 0.2s, color 0.2s; }
+      .spot::before { content: ""; position: absolute; inset: -6px; border-radius: 50%; border: 2px solid rgba(225, 15, 26, 0.6); opacity: 0; }
+      .spot:hover { transform: scale(1.08); }
+      .spot.is-active { background: var(--red); color: #fff; transform: scale(1.12); }
+      .spot.is-active::before { animation: ring 1.8s ease-out infinite; }
+      @keyframes ring { 0% { transform: scale(0.9); opacity: 0.9; } 100% { transform: scale(1.7); opacity: 0; } }
+      .flist { display: grid; gap: 6px; }
+      .feature { display: grid; grid-template-columns: auto 1fr; gap: 2px 16px; width: 100%; padding: 16px 18px; border-radius: 16px; border: 1px solid transparent; text-align: left; transition: background-color 0.25s, border-color 0.25s, box-shadow 0.25s; }
+      .feature-n { grid-row: span 2; display: grid; place-items: center; width: 30px; height: 30px; border-radius: 50%; border: 1px solid var(--line); background: #fff; font-family: var(--mono); font-size: 12px; font-weight: 600; color: var(--text-2); transition: background-color 0.25s, border-color 0.25s, color 0.25s; }
+      .feature-t { align-self: center; min-height: 30px; display: flex; align-items: center; font-size: 17px; font-weight: 600; letter-spacing: -0.015em; color: var(--text-2); transition: color 0.25s; }
+      .feature-d { display: grid; grid-template-rows: 0fr; font-size: 14.5px; line-height: 1.55; color: var(--text-2); transition: grid-template-rows 0.35s var(--ease); }
+      .feature-d > span { overflow: hidden; }
+      .feature:hover .feature-t { color: var(--text); }
+      .feature.is-active { border-color: var(--line); background: #fff; box-shadow: 0 12px 32px -16px rgba(10, 10, 11, 0.22); }
+      .feature.is-active .feature-n { border-color: var(--red); background: var(--red); color: #fff; }
+      .feature.is-active .feature-t { color: var(--text); }
+      .feature.is-active .feature-d, html:not(.js) .feature-d { grid-template-rows: 1fr; }
+      .safety { display: flex; gap: 12px; margin-top: 18px; padding: 16px 18px; border-radius: 16px; background: rgba(250, 178, 25, 0.12); font-size: 14px; line-height: 1.55; color: #5c4300; }
+      .safety .icon { width: 20px; height: 20px; color: #b37d00; }
+
+      /* ---------- Specs ---------- */
+      .specs-grid { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 16px; }
+      .spec-card { padding: 28px; border-radius: var(--r-lg); border: 1px solid var(--line); background: #fff; }
+      .spec-card header { display: flex; align-items: center; gap: 12px; margin-bottom: 14px; }
+      .spec-card h3 { font-size: 17px; font-weight: 600; letter-spacing: -0.01em; }
+      .spec-ico { display: grid; place-items: center; width: 40px; height: 40px; border-radius: 12px; background: var(--paper-2); color: var(--red); }
+      .spec-card dl div { display: flex; justify-content: space-between; gap: 16px; padding: 14px 0; border-top: 1px solid var(--line); font-size: 14.5px; }
+      .spec-card dt { color: var(--text-2); }
+      .spec-card dd { font-weight: 600; text-align: right; }
+      .specs-foot { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 16px 32px; margin-top: 28px; }
+      .specs-foot p { max-width: 560px; font-size: 13.5px; color: var(--text-3); }
+
+      /* ---------- Why Bedón ---------- */
+      .why { display: grid; grid-template-columns: minmax(0, 0.9fr) minmax(0, 1.1fr); gap: clamp(40px, 6vw, 96px); align-items: start; }
+      .why .section-head { position: sticky; top: 120px; margin-bottom: 0; }
+      .pillars { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 16px; }
+      .pillar { display: grid; align-content: start; gap: 14px; padding: 28px; border-radius: var(--r-lg); border: 1px solid var(--line-d); background: var(--ink-900); }
+      .pillar-ico { display: grid; place-items: center; width: 44px; height: 44px; border-radius: 12px; background: rgba(225, 15, 26, 0.14); color: var(--red-400); }
+      .pillar h3 { font-size: 18px; font-weight: 600; letter-spacing: -0.015em; }
+      .pillar p { font-size: 14.5px; line-height: 1.6; color: var(--on-d2); }
+      .place { grid-column: 1 / -1; display: grid; grid-template-columns: auto 1fr auto; gap: 20px; align-items: center; padding: 24px 28px; border-radius: var(--r-lg); border: 1px solid rgba(225, 15, 26, 0.3); background: linear-gradient(135deg, rgba(225, 15, 26, 0.16), rgba(225, 15, 26, 0.04)); }
+      .place-ico { display: grid; place-items: center; width: 44px; height: 44px; border-radius: 12px; background: var(--red); color: #fff; }
+      .place h3 { font-size: 17px; font-weight: 600; }
+      .place p { font-size: 14.5px; color: var(--on-d2); }
+      .branches { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 10px; }
+      .branches li { padding: 4px 10px; border-radius: 999px; border: 1px solid var(--line-d2); font-size: 12.5px; color: var(--on-d); }
+
+      /* ---------- Steps ---------- */
+      .steps { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 16px; }
+      .step { position: relative; padding: 32px 28px; border-radius: var(--r-lg); border: 1px solid var(--line); background: var(--paper-2); }
+      .step-n { font-family: var(--mono); font-size: 13px; font-weight: 600; letter-spacing: 0.06em; color: var(--red); }
+      .step h3 { margin-top: 36px; font-size: 22px; font-weight: 600; letter-spacing: -0.02em; }
+      .step p { margin-top: 8px; font-size: 15px; color: var(--text-2); }
+      .step:not(:last-child)::after { content: ""; position: absolute; top: 40px; right: -17px; width: 18px; height: 1px; background: var(--line); }
+
+      /* ---------- FAQ ---------- */
+      .faq { display: grid; grid-template-columns: minmax(0, 0.8fr) minmax(0, 1.2fr); gap: clamp(40px, 6vw, 96px); align-items: start; }
+      .faq .section-head { position: sticky; top: 120px; margin-bottom: 0; justify-items: start; }
+      .qa { display: grid; gap: 10px; }
+      .qa details { border-radius: 18px; border: 1px solid var(--line); background: #fff; transition: box-shadow 0.25s; }
+      .qa details[open] { box-shadow: 0 16px 40px -24px rgba(10, 10, 11, 0.25); }
+      .qa summary { display: flex; align-items: center; justify-content: space-between; gap: 20px; padding: 20px 24px; font-size: 16.5px; font-weight: 600; letter-spacing: -0.01em; cursor: pointer; list-style: none; }
+      .qa summary::-webkit-details-marker { display: none; }
+      .plus { display: grid; place-items: center; width: 28px; height: 28px; flex: none; border-radius: 50%; background: var(--paper-2); transition: transform 0.3s var(--ease), background-color 0.2s, color 0.2s; }
+      .plus .icon { width: 16px; height: 16px; stroke-width: 2.25; }
+      .qa details[open] .plus { transform: rotate(45deg); background: var(--red); color: #fff; }
+      .answer { max-width: 62ch; padding: 0 24px 22px; font-size: 15.5px; line-height: 1.65; color: var(--text-2); }
+
+      /* ---------- Final CTA ---------- */
+      .final { position: relative; overflow: hidden; isolation: isolate; text-align: center; }
+      .final::before { content: ""; position: absolute; inset: 0; z-index: -1; background-image: linear-gradient(rgba(255, 255, 255, 0.04) 1px, transparent 1px), linear-gradient(90deg, rgba(255, 255, 255, 0.04) 1px, transparent 1px); background-size: 64px 64px; -webkit-mask-image: radial-gradient(ellipse 60% 70% at 50% 100%, #000 10%, transparent 75%); mask-image: radial-gradient(ellipse 60% 70% at 50% 100%, #000 10%, transparent 75%); }
+      .final::after { content: ""; position: absolute; left: 50%; bottom: -45%; z-index: -2; width: 1100px; height: 720px; transform: translateX(-50%); background: radial-gradient(closest-side, rgba(225, 15, 26, 0.42), transparent); }
+      .final .container { display: grid; justify-items: center; gap: 24px; }
+      .final h2 { max-width: 15ch; font-size: clamp(2.5rem, 6vw, 5rem); line-height: 0.98; letter-spacing: -0.05em; font-weight: 600; text-wrap: balance; }
+      .final .lead { max-width: 560px; }
+      .final-meta { display: flex; flex-wrap: wrap; justify-content: center; gap: 10px 28px; margin-top: 8px; font-size: 14px; color: var(--on-d2); }
+      .final-meta span { display: inline-flex; align-items: center; gap: 8px; }
+      .final-meta .icon { width: 16px; height: 16px; }
+
+      /* ---------- Footer ---------- */
+      .footer { padding: 64px 0 32px; border-top: 1px solid var(--line-d); background: #000; color: var(--on-d2); font-size: 14px; }
+      .footer-grid { display: grid; grid-template-columns: 1.4fr 1fr 1fr 1fr; gap: 40px; }
+      .footer-brand img { width: auto; height: 36px; }
+      .footer-brand p { max-width: 280px; margin-top: 16px; line-height: 1.6; }
+      .footer-h { margin-bottom: 14px; font-size: 13px; font-weight: 600; color: #fff; }
+      .footer li + li { margin-top: 8px; }
+      .footer a { transition: color 0.2s; }
+      .footer a:hover { color: #fff; }
+      .footer-bottom { display: flex; flex-wrap: wrap; justify-content: space-between; gap: 12px; margin-top: 56px; padding-top: 24px; border-top: 1px solid var(--line-d); font-size: 12.5px; color: var(--on-d3); }
+
+      /* ---------- Floating CTAs ---------- */
+      .wa-fab { position: fixed; right: 24px; bottom: 24px; z-index: 60; display: grid; place-items: center; width: 58px; height: 58px; border-radius: 50%; background: var(--wa); color: #fff; box-shadow: 0 12px 30px -8px rgba(34, 195, 94, 0.6), 0 4px 12px rgba(0, 0, 0, 0.25); transition: transform 0.25s var(--ease); }
+      .wa-fab:hover { transform: scale(1.07); }
+      .wa-fab .icon { width: 28px; height: 28px; }
+      .wa-fab-label { position: absolute; right: calc(100% + 12px); padding: 8px 12px; border-radius: 10px; background: #fff; color: var(--text); font-size: 13.5px; font-weight: 600; white-space: nowrap; box-shadow: 0 8px 24px rgba(0, 0, 0, 0.18); opacity: 0; transform: translateX(6px); transition: opacity 0.25s, transform 0.25s; pointer-events: none; }
+      .wa-fab:hover .wa-fab-label, .wa-fab:focus-visible .wa-fab-label { opacity: 1; transform: none; }
+      .mobile-cta { position: fixed; left: 0; right: 0; bottom: 0; z-index: 60; display: none; align-items: center; gap: 12px; padding: 10px 16px calc(10px + env(safe-area-inset-bottom)); border-top: 1px solid var(--line-d); background: rgba(9, 9, 11, 0.92); -webkit-backdrop-filter: blur(16px); backdrop-filter: blur(16px); color: #fff; transform: translateY(110%); transition: transform 0.35s var(--ease); }
+      .mobile-cta.is-visible { transform: none; }
+      .mobile-cta img { width: 48px; }
+      .mobile-cta div { flex: 1; min-width: 0; line-height: 1.3; }
+      .mobile-cta strong { display: block; font-size: 14px; font-weight: 600; }
+      .mobile-cta span { font-size: 12.5px; color: var(--on-d2); }
+
+      /* ---------- Reveal ---------- */
+      .js [data-reveal] { opacity: 0; transform: translateY(20px); transition: opacity 0.8s var(--ease), transform 0.8s var(--ease); transition-delay: calc(var(--d, 0) * 70ms); }
+      .js [data-reveal].is-in { opacity: 1; transform: none; }
+
+      /* ---------- Responsive ---------- */
+      @media (max-width: 1100px) {
+        .stats, .uses { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+        .specs-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+        .specs-grid > :last-child { grid-column: 1 / -1; }
+      }
+      @media (max-width: 900px) {
+        .nav { display: none; }
+        .hero-grid { grid-template-columns: 1fr; }
+        .stage { max-width: 560px; }
+        .specbar ul { grid-template-columns: repeat(2, minmax(0, 1fr)); column-gap: 24px; border-top: 0; }
+        .specbar li, .specbar li:first-child { padding: 20px 0; border-left: 0; border-top: 1px solid var(--line-d); }
+        .specbar li:last-child { grid-column: 1 / -1; }
+        .calc, .features, .why, .faq { grid-template-columns: 1fr; }
+        .result, .why .section-head, .faq .section-head { position: static; }
+        .steps { grid-template-columns: 1fr; }
+        .step:not(:last-child)::after { display: none; }
+        .footer-grid { grid-template-columns: 1fr 1fr; }
+      }
+      @media (max-width: 767px) {
+        .wa-fab { display: none; }
+        .mobile-cta { display: flex; }
+        body { padding-bottom: 72px; }
+      }
+      @media (max-width: 640px) {
+        .announce { font-size: 12.5px; }
+        .announce .hide-sm { display: none; }
+        .site-header .container { height: 60px; }
+        section[id] { scroll-margin-top: 59px; }
+        .brand img { height: 28px; }
+        .hero h1 { font-size: clamp(2.75rem, 13.5vw, 3.75rem); }
+        .cta-row { width: 100%; }
+        .cta-row .btn { width: 100%; }
+        .chip { gap: 10px; padding: 8px 12px 8px 8px; border-radius: 14px; }
+        .chip-ico { width: 30px; height: 30px; border-radius: 8px; }
+        .chip strong { font-size: 15px; }
+        .chip span { font-size: 11.5px; }
+        .chip-a { left: 0; bottom: 3%; }
+        .chip-b { right: 0; top: 0; }
+        .presets-label { width: 100%; }
+        .stats, .uses, .items, .pillars, .specs-grid { grid-template-columns: 1fr; }
+        .stat, .use, .spec-card, .pillar, .step { padding: 24px; }
+        .note { grid-template-columns: 1fr; gap: 10px; padding: 22px; }
+        .result { padding: 24px; }
+        .place { grid-template-columns: 1fr; }
+        .qa summary { padding: 18px 20px; font-size: 16px; }
+        .answer { padding: 0 20px 20px; }
+        .final .btn { width: 100%; }
+        .footer-grid { grid-template-columns: 1fr; }
+      }
+      @media (prefers-reduced-motion: reduce) {
+        html { scroll-behavior: auto; }
+        *, *::before, *::after { animation-duration: 0.001ms !important; animation-iteration-count: 1 !important; transition-duration: 0.001ms !important; transition-delay: 0s !important; }
+        .js [data-reveal] { opacity: 1; transform: none; }
+      }
+    </style>
+  </head>
+
+  <body data-wa={WA}>
+    <svg width="0" height="0" style="position:absolute" aria-hidden="true" focusable="false">
+      <symbol id="i-wa" viewBox="0 0 24 24"><path fill="currentColor" stroke="none" d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 0 1-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 0 1-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 0 1 2.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0 0 12.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 0 0 5.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 0 0-3.48-8.413Z"></path></symbol>
+      <symbol id="i-arrow" viewBox="0 0 24 24"><path d="M5 12h14"></path><path d="m12 5 7 7-7 7"></path></symbol>
+      <symbol id="i-check" viewBox="0 0 24 24"><path d="M20 6 9 17l-5-5"></path></symbol>
+      <symbol id="i-zap" viewBox="0 0 24 24"><path d="M13 2 3 14h9l-1 8 10-12h-9l1-8z"></path></symbol>
+      <symbol id="i-power" viewBox="0 0 24 24"><path d="M12 2v10"></path><path d="M18.4 6.6a9 9 0 1 1-12.77.04"></path></symbol>
+      <symbol id="i-plug" viewBox="0 0 24 24"><path d="M12 22v-5"></path><path d="M9 8V2"></path><path d="M15 8V2"></path><path d="M18 8v5a4 4 0 0 1-4 4h-4a4 4 0 0 1-4-4V8Z"></path></symbol>
+      <symbol id="i-fuel" viewBox="0 0 24 24"><path d="M3 22h12"></path><path d="M4 9h10"></path><path d="M14 22V4a2 2 0 0 0-2-2H6a2 2 0 0 0-2 2v18"></path><path d="M14 13h2a2 2 0 0 1 2 2v2a2 2 0 0 0 4 0V9.83a2 2 0 0 0-.59-1.42L18 5"></path></symbol>
+      <symbol id="i-home" viewBox="0 0 24 24"><path d="M3 10.5 12 3l9 7.5"></path><path d="M5 9.5V20a1 1 0 0 0 1 1h4v-6h4v6h4a1 1 0 0 0 1-1V9.5"></path></symbol>
+      <symbol id="i-store" viewBox="0 0 24 24"><path d="M3 9.5 4.8 4h14.4L21 9.5"></path><path d="M3 9.5h18"></path><path d="M4.5 9.5V20h15V9.5"></path><path d="M9.5 20v-5.5h5V20"></path></symbol>
+      <symbol id="i-leaf" viewBox="0 0 24 24"><path d="M11 20A7 7 0 0 1 9.8 6.1C15.5 5 17 4.48 19 2c1 2 2 4.18 2 8 0 5.5-4.78 10-10 10Z"></path><path d="M2 21c0-3 1.85-5.36 5.08-6C9.5 14.52 12 13 13 12"></path></symbol>
+      <symbol id="i-hat" viewBox="0 0 24 24"><path d="M10 10V5a1 1 0 0 1 1-1h2a1 1 0 0 1 1 1v5"></path><path d="M14 6a6 6 0 0 1 6 6v3"></path><path d="M4 15v-3a6 6 0 0 1 6-6"></path><rect x="2" y="15" width="20" height="4" rx="1"></rect></symbol>
+      <symbol id="i-shield" viewBox="0 0 24 24"><path d="M20 13c0 5-3.5 7.5-7.66 8.95a1 1 0 0 1-.67-.01C7.5 20.5 4 18 4 13V6a1 1 0 0 1 1-1c2 0 4.5-1.2 6.24-2.72a1.17 1.17 0 0 1 1.52 0C14.51 3.81 17 5 19 5a1 1 0 0 1 1 1z"></path><path d="m9 12 2 2 4-4"></path></symbol>
+      <symbol id="i-wrench" viewBox="0 0 24 24"><path d="M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.77-3.77a6 6 0 0 1-7.94 7.94l-6.91 6.91a2.12 2.12 0 0 1-3-3l6.91-6.91a6 6 0 0 1 7.94-7.94l-3.76 3.76z"></path></symbol>
+      <symbol id="i-package" viewBox="0 0 24 24"><path d="M11 21.73a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73z"></path><path d="M12 22V12"></path><path d="m3.3 7 7.703 4.734a2 2 0 0 0 1.994 0L20.7 7"></path><path d="m7.5 4.27 9 5.15"></path></symbol>
+      <symbol id="i-chat" viewBox="0 0 24 24"><path d="M7.9 20A9 9 0 1 0 4 16.1L2 22Z"></path></symbol>
+      <symbol id="i-pin" viewBox="0 0 24 24"><path d="M20 10c0 4.993-5.539 10.193-7.399 11.799a1 1 0 0 1-1.202 0C9.539 20.193 4 14.993 4 10a8 8 0 0 1 16 0"></path><circle cx="12" cy="10" r="3"></circle></symbol>
+      <symbol id="i-clock" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"></circle><path d="M12 6v6l4 2"></path></symbol>
+      <symbol id="i-info" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"></circle><path d="M12 16v-4"></path><path d="M12 8h.01"></path></symbol>
+      <symbol id="i-alert" viewBox="0 0 24 24"><path d="m21.73 18-8-14a2 2 0 0 0-3.48 0l-8 14A2 2 0 0 0 4 21h16a2 2 0 0 0 1.73-3"></path><path d="M12 9v4"></path><path d="M12 17h.01"></path></symbol>
+      <symbol id="i-ok" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"></circle><path d="m9 12 2 2 4-4"></path></symbol>
+      <symbol id="i-x" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"></circle><path d="m15 9-6 6"></path><path d="m9 9 6 6"></path></symbol>
+      <symbol id="i-down" viewBox="0 0 24 24"><path d="M22 17 13.5 8.5l-5 5L2 7"></path><path d="M16 17h6v-6"></path></symbol>
+      <symbol id="i-plus" viewBox="0 0 24 24"><path d="M12 5v14"></path><path d="M5 12h14"></path></symbol>
+      <symbol id="i-fb" viewBox="0 0 24 24"><path d="M18 2h-3a5 5 0 0 0-5 5v3H7v4h3v8h4v-8h3l1-4h-4V7a1 1 0 0 1 1-1h3z"></path></symbol>
+    </svg>
+
+    <a class="skip" href="#contenido">Saltar al contenido</a>
+
+    <div class="announce" role="note">
+      <div class="container">
+        <span class="pulse" aria-hidden="true"></span>
+        <p><strong>Estiaje 2026:</strong> <span class="hide-sm">el Gobierno ya aplica desconexiones programadas a la industria.</span> <a href="#contexto">Ver el contexto</a></p>
+      </div>
+    </div>
+
+    <header class="site-header">
+      <div class="container">
+        <a href="#top" class="brand" aria-label="Comercial Bedón, inicio">
+          <img src="/logos/comercial-bedon-dark.png" alt="Comercial Bedón" width="697" height="205" />
+        </a>
+        <nav class="nav" aria-label="Secciones">
+          <a href="#producto">Producto</a>
+          <a href="#calculadora">Calculadora</a>
+          <a href="#especificaciones">Especificaciones</a>
+          <a href="#preguntas">Preguntas</a>
+        </nav>
+        <a href={wa(MSG.main)} class="btn btn-primary btn-sm" target="_blank" rel="noopener" data-cta="header">
+          <svg class="icon" aria-hidden="true"><use href="#i-wa"></use></svg>
+          Cotizar
+        </a>
+      </div>
+    </header>
+
+    <main id="contenido">
+      <!-- Hero -->
+      <section class="hero" id="top" aria-labelledby="hero-title">
+        <div class="container hero-grid">
+          <div class="hero-copy">
+            <span class="badge"><b>Nuevo</b> Generador a gasolina CB9000</span>
+            <h1 id="hero-title"><span class="dim">La luz se va.</span><span class="lit">Usted sigue.</span></h1>
+            <p class="lead">
+              El CB9000 entrega <strong>7,5 kW</strong> con un motor de <strong>16 HP</strong>, arranque eléctrico y salidas de 110 y 220 V. Respaldo real para su hogar, su negocio o su finca, con la garantía y el servicio técnico de Comercial Bedón.
+            </p>
+            <div class="cta-row">
+              <a href={wa(MSG.main)} class="btn btn-primary btn-lg" target="_blank" rel="noopener" data-cta="hero">
+                <svg class="icon" aria-hidden="true"><use href="#i-wa"></use></svg>
+                Cotizar por WhatsApp
+              </a>
+              <a href="#calculadora" class="btn btn-ghost btn-lg">
+                Calcular mi consumo
+                <svg class="icon arrow" aria-hidden="true"><use href="#i-arrow"></use></svg>
+              </a>
+            </div>
+            <ul class="proof" aria-label="Respaldo de Comercial Bedón">
+              <li><svg class="icon" aria-hidden="true"><use href="#i-check"></use></svg>Garantía Comercial Bedón</li>
+              <li><svg class="icon" aria-hidden="true"><use href="#i-check"></use></svg>Servicio técnico autorizado</li>
+              <li><svg class="icon" aria-hidden="true"><use href="#i-check"></use></svg>Repuestos originales</li>
+            </ul>
+          </div>
+
+          <div class="stage">
+            <div class="stage-glow" aria-hidden="true"></div>
+            <div class="stage-floor" aria-hidden="true"></div>
+            <img
+              class="stage-img"
+              src="/images/cb9000.webp"
+              srcset="/images/cb9000-720.webp 720w, /images/cb9000.webp 1191w"
+              sizes="(max-width: 900px) 90vw, 620px"
+              width="1191"
+              height="1138"
+              alt="Generador a gasolina CB9000 de Comercial Bedón con chasis tubular, ruedas y panel de control"
+              fetchpriority="high"
+              decoding="async"
+            />
+            <div class="chip chip-a" aria-hidden="true">
+              <span class="chip-ico"><svg class="icon"><use href="#i-zap"></use></svg></span>
+              <div><strong>16 HP</strong><span>Motor a gasolina</span></div>
+            </div>
+            <div class="chip chip-b" aria-hidden="true">
+              <span class="chip-ico"><svg class="icon"><use href="#i-power"></use></svg></span>
+              <div><strong>Arranque eléctrico</strong><span>Con llave y batería</span></div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- Key specs -->
+      <section class="specbar" aria-label="Datos clave del CB9000">
+        <div class="container">
+          <ul>
+            {keySpecs.map((s) => (
+              <li>
+                <p class="spec-v">{s.value}<small>{s.unit}</small></p>
+                <p class="spec-l">{s.label}</p>
+              </li>
+            ))}
+          </ul>
+        </div>
+      </section>
+
+      <!-- Context -->
+      <section class="section tone" id="contexto" aria-labelledby="contexto-title">
+        <div class="container">
+          <div class="section-head" data-reveal>
+            <span class="eyebrow">Contexto · Octubre 2026</span>
+            <h2 class="h2" id="contexto-title">El estiaje ya se siente en la red eléctrica.</h2>
+            <p class="lead">
+              Desde septiembre, la temporada seca reduce el caudal de los ríos que mueven las hidroeléctricas. El Gobierno ya pidió a la industria bajar su consumo y llama a usar la energía de forma inteligente.
+            </p>
+          </div>
+
+          <div class="stats">
+            {stats.map((s, i) => (
+              <article class="stat" data-reveal style={`--d:${i}`}>
+                <p class="stat-label">{s.label}</p>
+                <p class="stat-value">
+                  {s.down && <span class="stat-delta" aria-hidden="true"><svg class="icon"><use href="#i-down"></use></svg></span>}
+                  <span>{s.value}{s.unit && <small>{s.unit}</small>}</span>
+                </p>
+                <p class="stat-detail">{s.detail}</p>
+              </article>
+            ))}
+          </div>
+
+          <div class="note" data-reveal>
+            <svg class="icon" aria-hidden="true"><use href="#i-info"></use></svg>
+            <p>
+              <strong>Lo que dice el Gobierno.</strong> Hoy no hay cortes programados para hogares, y el Ministerio asegura que no los habrá bajo el esquema actual. Aun así, el ministro Juan Carlos Blum reconoció que nadie puede garantizar que no haya apagones, porque no se sabe cómo se comportarán el clima ni el fenómeno de El Niño. Un generador es un seguro: prepararse con tiempo cuesta menos que hacerlo en plena emergencia.
+            </p>
+          </div>
+
+          <p class="sources">
+            <span>Fuentes:</span>
+            {sources.map((s) => <a href={s.href} target="_blank" rel="noopener">{s.label}</a>)}
+          </p>
+        </div>
+      </section>
+
+      <!-- Uses -->
+      <section class="section" id="usos" aria-labelledby="usos-title">
+        <div class="container">
+          <div class="section-head" data-reveal>
+            <span class="eyebrow">Para qué sirve</span>
+            <h2 class="h2" id="usos-title">Energía propia, donde la necesite.</h2>
+            <p class="lead">Un solo equipo para mantener en marcha lo que más importa cuando la red falla.</p>
+          </div>
+          <div class="uses">
+            {uses.map((u, i) => (
+              <article class="use" data-reveal style={`--d:${i}`}>
+                <span class="use-ico" aria-hidden="true"><svg class="icon"><use href={`#${u.icon}`}></use></svg></span>
+                <h3>{u.title}</h3>
+                <p>{u.text}</p>
+                <ul class="tags" aria-label={`Usos en ${u.title.toLowerCase()}`}>
+                  {u.tags.map((t) => <li>{t}</li>)}
+                </ul>
+              </article>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      <!-- Calculator -->
+      <section class="section dark calc-section" id="calculadora" aria-labelledby="calc-title">
+        <div class="container">
+          <div class="section-head" data-reveal>
+            <span class="eyebrow">Calculadora de consumo</span>
+            <h2 class="h2" id="calc-title">¿Le alcanza? Compruébelo en segundos.</h2>
+            <p class="lead">Marque lo que quiere mantener encendido. Usamos consumos típicos de referencia; un asesor confirma su caso antes de que compre.</p>
+          </div>
+
+          <div class="calc" id="calc" data-capacity="7500" data-peak="8000" data-state="none" data-reveal>
+            <div>
+              <div class="presets" role="group" aria-label="Escenarios rápidos">
+                <span class="presets-label">Probar un escenario</span>
+                {presets.map((p) => (
+                  <button type="button" class="preset" data-preset={p.ids.join(",")} aria-pressed="false">{p.label}</button>
+                ))}
+                <button type="button" class="preset preset-clear" data-preset="" aria-pressed="false">Limpiar</button>
+              </div>
+              <fieldset style="border:0;margin:0;padding:0;min-width:0">
+                <legend class="sr-only">Equipos que quiere alimentar</legend>
+                <ul class="items">
+                  {appliances.map((a) => (
+                    <li>
+                      <label class="item">
+                        <input type="checkbox" value={a.id} data-watts={a.watts} data-surge={a.surge} data-name={a.name} />
+                        <span class="box" aria-hidden="true"><svg class="icon"><use href="#i-check"></use></svg></span>
+                        <span class="item-name">{a.name}</span>
+                        <span class="item-w">{fmt(a.watts)} W</span>
+                      </label>
+                    </li>
+                  ))}
+                </ul>
+              </fieldset>
+            </div>
+
+            <aside class="result" aria-live="polite" aria-label="Resultado del cálculo">
+              <p class="result-label">Consumo continuo estimado</p>
+              <p class="result-value"><span id="calc-total">0</span><small>W</small></p>
+              <p class="result-cap">de 7.500 W de potencia nominal</p>
+              <div class="meter" id="calc-meter" role="meter" aria-label="Carga sobre la potencia nominal" aria-valuemin="0" aria-valuemax="7500" aria-valuenow="0">
+                <span class="meter-fill" id="calc-fill"></span>
+              </div>
+              <div class="meter-scale" aria-hidden="true"><span>0 W</span><span>7.500 W</span></div>
+              <p class="status">
+                <svg class="icon s-none" aria-hidden="true"><use href="#i-info"></use></svg>
+                <svg class="icon s-good" aria-hidden="true"><use href="#i-ok"></use></svg>
+                <svg class="icon s-warn" aria-hidden="true"><use href="#i-alert"></use></svg>
+                <svg class="icon s-over" aria-hidden="true"><use href="#i-x"></use></svg>
+                <span id="calc-status">Sin selección</span>
+              </p>
+              <p class="status-text" id="calc-status-text">Marque los equipos que quiere mantener encendidos.</p>
+              <dl class="rows">
+                <div><dt>Equipos seleccionados</dt><dd id="calc-count">0</dd></div>
+                <div><dt>Pico estimado de arranque</dt><dd><span id="calc-peak">0</span> W de 8.000 W</dd></div>
+              </dl>
+              <a href={wa(MSG.calc)} class="btn btn-primary btn-block" id="calc-cta" target="_blank" rel="noopener" data-cta="calculadora">
+                <svg class="icon" aria-hidden="true"><use href="#i-wa"></use></svg>
+                Enviar mi lista por WhatsApp
+              </a>
+              <p class="result-note">Los motores de refrigeradoras, bombas y compresores consumen más al arrancar; el pico estimado suma el arranque del equipo más exigente.</p>
+            </aside>
+          </div>
+        </div>
+      </section>
+
+      <!-- Features -->
+      <section class="section tone" id="producto" aria-labelledby="producto-title">
+        <div class="container">
+          <div class="section-head" data-reveal>
+            <span class="eyebrow">Diseño y equipamiento</span>
+            <h2 class="h2" id="producto-title">Hecho para trabajar duro.</h2>
+            <p class="lead">Explore el CB9000: toque los puntos sobre la imagen para conocer cada detalle.</p>
+          </div>
+
+          <div class="features" id="features">
+            <div class="showcase" data-reveal>
+              <div class="showcase-inner">
+                <img src="/images/cb9000.webp" srcset="/images/cb9000-720.webp 720w, /images/cb9000.webp 1191w" sizes="(max-width: 900px) 90vw, 640px" width="1191" height="1138" alt="Vista del generador CB9000 con sus componentes principales" loading="lazy" decoding="async" />
+                {features.map((f) => (
+                  <button type="button" class:list={["spot", { "is-active": f.n === 1 }]} data-spot={f.n} style={`--x:${f.x}%;--y:${f.y}%`} aria-label={f.title} aria-pressed={f.n === 1 ? "true" : "false"}>
+                    {f.n}
+                  </button>
+                ))}
+              </div>
+            </div>
+
+            <div data-reveal style="--d:1">
+              <div class="flist">
+                {features.map((f) => (
+                  <button type="button" class:list={["feature", { "is-active": f.n === 1 }]} data-feature={f.n}>
+                    <span class="feature-n" aria-hidden="true">{f.n}</span>
+                    <span class="feature-t">{f.title}</span>
+                    <span class="feature-d"><span>{f.text}</span></span>
+                  </button>
+                ))}
+              </div>
+              <p class="safety">
+                <svg class="icon" aria-hidden="true"><use href="#i-alert"></use></svg>
+                <span>Por seguridad, úselo siempre al aire libre y lejos de puertas y ventanas: los generadores a gasolina emiten monóxido de carbono.</span>
+              </p>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- Specs -->
+      <section class="section" id="especificaciones" aria-labelledby="specs-title">
+        <div class="container">
+          <div class="section-head" data-reveal>
+            <span class="eyebrow">Ficha técnica</span>
+            <h2 class="h2" id="specs-title">Especificaciones del CB9000.</h2>
+          </div>
+          <div class="specs-grid">
+            {specGroups.map((g, i) => (
+              <article class="spec-card" data-reveal style={`--d:${i}`}>
+                <header>
+                  <span class="spec-ico" aria-hidden="true"><svg class="icon"><use href={`#${g.icon}`}></use></svg></span>
+                  <h3>{g.title}</h3>
+                </header>
+                <dl>
+                  {g.rows.map(([k, v]) => (
+                    <div><dt>{k}</dt><dd>{v}</dd></div>
+                  ))}
+                </dl>
+              </article>
+            ))}
+          </div>
+          <div class="specs-foot" data-reveal>
+            <p>Datos de referencia del fabricante, sujetos a cambio sin previo aviso. Confirme la configuración del equipo con su asesor.</p>
+            <a href={wa(MSG.specs)} class="btn btn-outline" target="_blank" rel="noopener" data-cta="especificaciones">
+              <svg class="icon" aria-hidden="true"><use href="#i-wa"></use></svg>
+              Pedir ficha y cotización
+            </a>
+          </div>
+        </div>
+      </section>
+
+      <!-- Why Bedón -->
+      <section class="section dark" id="respaldo" aria-labelledby="respaldo-title">
+        <div class="container why">
+          <div class="section-head" data-reveal>
+            <span class="eyebrow">Comercial Bedón</span>
+            <h2 class="h2" id="respaldo-title">Más que un equipo: respaldo real.</h2>
+            <p class="lead">Somos distribuidores de maquinaria agrícola, forestal y de construcción en Imbabura, con servicio técnico y repuestos para que su inversión rinda.</p>
+          </div>
+          <div class="pillars">
+            {pillars.map((p, i) => (
+              <article class="pillar" data-reveal style={`--d:${i}`}>
+                <span class="pillar-ico" aria-hidden="true"><svg class="icon"><use href={`#${p.icon}`}></use></svg></span>
+                <h3>{p.title}</h3>
+                <p>{p.text}</p>
+              </article>
+            ))}
+            <article class="place" data-reveal>
+              <span class="place-ico" aria-hidden="true"><svg class="icon"><use href="#i-pin"></use></svg></span>
+              <div>
+                <h3>Matriz en Ibarra</h3>
+                <p>Av. Cristóbal de Troya 5-165 y Luis Fernando Villamar · Lun–Vie 8:00–18:00</p>
+                <ul class="branches" aria-label="Puntos de atención">
+                  {branches.map((b) => <li>{b}</li>)}
+                </ul>
+              </div>
+              <a href={MAPS} class="btn btn-ghost btn-sm" target="_blank" rel="noopener">
+                Cómo llegar
+                <svg class="icon arrow" aria-hidden="true"><use href="#i-arrow"></use></svg>
+              </a>
+            </article>
+          </div>
+        </div>
+      </section>
+
+      <!-- Steps -->
+      <section class="section" aria-labelledby="pasos-title">
+        <div class="container">
+          <div class="section-head center" data-reveal>
+            <span class="eyebrow">Cómo comprar</span>
+            <h2 class="h2" id="pasos-title">De su mensaje a su generador, en tres pasos.</h2>
+          </div>
+          <ol class="steps">
+            {steps.map((s, i) => (
+              <li class="step" data-reveal style={`--d:${i}`}>
+                <span class="step-n">0{i + 1}</span>
+                <h3>{s.title}</h3>
+                <p>{s.text}</p>
+              </li>
+            ))}
+          </ol>
+        </div>
+      </section>
+
+      <!-- FAQ -->
+      <section class="section tone" id="preguntas" aria-labelledby="faq-title">
+        <div class="container faq">
+          <div class="section-head" data-reveal>
+            <span class="eyebrow">Preguntas frecuentes</span>
+            <h2 class="h2" id="faq-title">Todo lo que necesita saber.</h2>
+            <p class="lead">¿No encuentra su respuesta? Un asesor le atiende directamente por WhatsApp.</p>
+            <a href={wa(MSG.faq)} class="btn btn-outline" target="_blank" rel="noopener" data-cta="faq">
+              <svg class="icon" aria-hidden="true"><use href="#i-wa"></use></svg>
+              Hacer otra pregunta
+            </a>
+          </div>
+          <div class="qa" data-reveal>
+            {faqs.map((f, i) => (
+              <details open={i === 0}>
+                <summary>
+                  {f.q}
+                  <span class="plus" aria-hidden="true"><svg class="icon"><use href="#i-plus"></use></svg></span>
+                </summary>
+                <p class="answer">{f.a}</p>
+              </details>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      <!-- Final CTA -->
+      <section class="section dark final" id="cotizar" aria-labelledby="final-title">
+        <div class="container">
+          <span class="eyebrow" data-reveal>Hable con un asesor</span>
+          <h2 id="final-title" data-reveal>Prepárese hoy, no en el próximo apagón.</h2>
+          <p class="lead" data-reveal>Escríbanos, cuéntenos qué quiere mantener encendido y reciba su cotización del CB9000 con asesoría real.</p>
+          <div class="cta-row" style="justify-content:center" data-reveal>
+            <a href={wa(MSG.main)} class="btn btn-primary btn-lg" target="_blank" rel="noopener" data-cta="final">
+              <svg class="icon" aria-hidden="true"><use href="#i-wa"></use></svg>
+              Cotizar por WhatsApp
+            </a>
+            <a href={MAPS} class="btn btn-ghost btn-lg" target="_blank" rel="noopener">
+              <svg class="icon" aria-hidden="true"><use href="#i-pin"></use></svg>
+              Cómo llegar
+            </a>
+          </div>
+          <p class="final-meta" data-reveal>
+            <span><svg class="icon" aria-hidden="true"><use href="#i-wa"></use></svg>{PHONE}</span>
+            <span><svg class="icon" aria-hidden="true"><use href="#i-pin"></use></svg>Ibarra, Imbabura</span>
+            <span><svg class="icon" aria-hidden="true"><use href="#i-clock"></use></svg>Lun–Vie 8:00–18:00</span>
+          </p>
+        </div>
+      </section>
+    </main>
+
+    <footer class="footer">
+      <div class="container">
+        <div class="footer-grid">
+          <div class="footer-brand">
+            <img src="/logos/comercial-bedon-dark.png" alt="Comercial Bedón" width="697" height="205" loading="lazy" />
+            <p>Maquinaria agrícola, forestal y de construcción, con servicio técnico y repuestos. Ibarra, Ecuador.</p>
+          </div>
+          <div>
+            <p class="footer-h">Contacto</p>
+            <ul>
+              <li><a href={wa(MSG.main)} target="_blank" rel="noopener" data-cta="footer">WhatsApp {PHONE}</a></li>
+              <li><a href={FB} target="_blank" rel="noopener">Facebook</a></li>
+            </ul>
+          </div>
+          <div>
+            <p class="footer-h">Matriz</p>
+            <ul>
+              <li>Av. Cristóbal de Troya 5-165 y Luis Fernando Villamar, Ibarra</li>
+              <li>Lunes a viernes, 8:00–18:00</li>
+            </ul>
+          </div>
+          <div>
+            <p class="footer-h">Puntos de atención</p>
+            <ul>
+              {branches.map((b) => <li>{b}</li>)}
+            </ul>
+          </div>
+        </div>
+        <div class="footer-bottom">
+          <span>© {new Date().getFullYear()} Comercial Bedón. Todos los derechos reservados.</span>
+          <span>Especificaciones de referencia sujetas a cambio. Precio y disponibilidad por consulta.</span>
+        </div>
+      </div>
+    </footer>
+
+    <a href={wa(MSG.main)} class="wa-fab" target="_blank" rel="noopener" aria-label="Escribir por WhatsApp" data-cta="flotante">
+      <svg class="icon" aria-hidden="true"><use href="#i-wa"></use></svg>
+      <span class="wa-fab-label" aria-hidden="true">¿Dudas? Escríbanos</span>
+    </a>
+
+    <div class="mobile-cta" aria-hidden="true">
+      <img src="/images/cb9000-720.webp" alt="" width="720" height="688" loading="lazy" decoding="async" />
+      <div>
+        <strong>Generador CB9000</strong>
+        <span>16 HP · 7,5 kW · 110/220 V</span>
+      </div>
+      <a href={wa(MSG.main)} class="btn btn-primary btn-sm" target="_blank" rel="noopener" tabindex="-1" data-cta="barra-movil">
+        <svg class="icon" aria-hidden="true"><use href="#i-wa"></use></svg>
+        Cotizar
+      </a>
+    </div>
+
+    <script is:inline>
+      (function () {
+        var WA = document.body.getAttribute("data-wa");
+        var waHref = function (msg) { return "https://wa.me/" + WA + "?text=" + encodeURIComponent(msg); };
+        var fmt = function (n) { return String(n).replace(/\B(?=(\d{3})+(?!\d))/g, "."); };
+        var reduce = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+
+        // Header
+        var header = document.querySelector(".site-header");
+        var onScroll = function () { header.classList.toggle("is-scrolled", window.scrollY > 8); };
+        window.addEventListener("scroll", onScroll, { passive: true });
+        onScroll();
+
+        // Reveal on scroll
+        var reveals = document.querySelectorAll("[data-reveal]");
+        if ("IntersectionObserver" in window && !reduce) {
+          var io = new IntersectionObserver(function (entries) {
+            entries.forEach(function (e) {
+              if (e.isIntersecting) { e.target.classList.add("is-in"); io.unobserve(e.target); }
+            });
+          }, { rootMargin: "0px 0px -8% 0px", threshold: 0.08 });
+          reveals.forEach(function (el) { io.observe(el); });
+        } else {
+          reveals.forEach(function (el) { el.classList.add("is-in"); });
+        }
+
+        // Calculator
+        var calc = document.getElementById("calc");
+        if (calc) {
+          var CAP = Number(calc.dataset.capacity);
+          var PEAK = Number(calc.dataset.peak);
+          var boxes = Array.prototype.slice.call(calc.querySelectorAll('input[type="checkbox"]'));
+          var presetBtns = calc.querySelectorAll("[data-preset]");
+          var $ = function (id) { return document.getElementById(id); };
+          var STATES = {
+            none: ["Sin selección", "Marque los equipos que quiere mantener encendidos."],
+            good: ["Con margen", "El CB9000 cubre esta carga con holgura."],
+            tight: ["Al límite", "Le alcanza, pero conviene escalonar el uso de los equipos más grandes."],
+            surge: ["Arranque exigente", "En uso continuo le alcanza. Encienda los motores de uno en uno."],
+            over: ["Excede la capacidad", "Supera los 7.500 W nominales. Use los equipos por turnos o consulte otra potencia."]
+          };
+          var update = function () {
+            var total = 0, surge = 0, names = [];
+            boxes.forEach(function (b) {
+              if (!b.checked) return;
+              total += Number(b.dataset.watts);
+              surge = Math.max(surge, Number(b.dataset.surge));
+              names.push(b.dataset.name);
+            });
+            var peak = total + surge;
+            var pct = Math.min(100, (total / CAP) * 100);
+            var state = !names.length ? "none" : total > CAP ? "over" : peak > PEAK ? "surge" : pct > 75 ? "tight" : "good";
+            $("calc-total").textContent = fmt(total);
+            $("calc-peak").textContent = fmt(peak);
+            $("calc-count").textContent = String(names.length);
+            $("calc-fill").style.width = pct + "%";
+            $("calc-meter").setAttribute("aria-valuenow", String(total));
+            calc.dataset.state = state;
+            $("calc-status").textContent = STATES[state][0];
+            $("calc-status-text").textContent = STATES[state][1];
+            $("calc-cta").href = waHref(names.length
+              ? "Hola Comercial Bedón, quiero cotizar el generador CB9000 (16 HP). Quiero alimentar: " + names.join(", ") + ". Consumo estimado: " + fmt(total) + " W. ¿Me ayudan a confirmar si me alcanza?"
+              : "Hola Comercial Bedón, quiero cotizar el generador CB9000 (16 HP). ¿Me ayudan a calcular mi consumo?");
+          };
+          var setPressed = function (active) {
+            presetBtns.forEach(function (p) { p.setAttribute("aria-pressed", p === active ? "true" : "false"); });
+          };
+          var applyPreset = function (btn) {
+            var ids = btn.dataset.preset ? btn.dataset.preset.split(",") : [];
+            boxes.forEach(function (b) { b.checked = ids.indexOf(b.value) !== -1; });
+            setPressed(ids.length ? btn : null);
+            update();
+          };
+          boxes.forEach(function (b) { b.addEventListener("change", function () { setPressed(null); update(); }); });
+          presetBtns.forEach(function (btn) { btn.addEventListener("click", function () { applyPreset(btn); }); });
+          // Start with the "Casa" scenario so the result card shows a real example.
+          if (!boxes.some(function (b) { return b.checked; })) applyPreset(presetBtns[0]);
+          else update();
+        }
+
+        // Feature hotspots
+        var fx = document.getElementById("features");
+        if (fx) {
+          var spots = fx.querySelectorAll("[data-spot]");
+          var feats = fx.querySelectorAll("[data-feature]");
+          var activate = function (n) {
+            spots.forEach(function (s) {
+              var on = s.dataset.spot === n;
+              s.classList.toggle("is-active", on);
+              s.setAttribute("aria-pressed", on ? "true" : "false");
+            });
+            feats.forEach(function (f) { f.classList.toggle("is-active", f.dataset.feature === n); });
+          };
+          spots.forEach(function (s) {
+            s.addEventListener("click", function () { activate(s.dataset.spot); });
+            s.addEventListener("mouseenter", function () { activate(s.dataset.spot); });
+          });
+          feats.forEach(function (f) {
+            f.addEventListener("click", function () { activate(f.dataset.feature); });
+            f.addEventListener("mouseenter", function () { activate(f.dataset.feature); });
+          });
+        }
+
+        // Mobile sticky CTA: visible between the hero and the final CTA
+        var bar = document.querySelector(".mobile-cta");
+        var hero = document.querySelector(".hero");
+        var finalCta = document.getElementById("cotizar");
+        if (bar && hero && finalCta && "IntersectionObserver" in window) {
+          var heroIn = true, finalIn = false;
+          var sync = function () {
+            var show = !heroIn && !finalIn;
+            bar.classList.toggle("is-visible", show);
+            bar.setAttribute("aria-hidden", show ? "false" : "true");
+            bar.querySelector("a").tabIndex = show ? 0 : -1;
+          };
+          new IntersectionObserver(function (e) { heroIn = e[0].isIntersecting; sync(); }).observe(hero);
+          new IntersectionObserver(function (e) { finalIn = e[0].isIntersecting; sync(); }).observe(finalCta);
+        }
+
+        // Analytics hooks (no-op unless GTM, GA4 or Meta Pixel are installed)
+        document.addEventListener("click", function (e) {
+          var a = e.target.closest && e.target.closest("[data-cta]");
+          if (!a) return;
+          var cta = a.getAttribute("data-cta");
+          if (window.dataLayer) window.dataLayer.push({ event: "whatsapp_click", cta: cta });
+          if (window.gtag) window.gtag("event", "whatsapp_click", { cta: cta });
+          if (window.fbq) window.fbq("track", "Contact", { content_name: "Generador CB9000", cta: cta });
+        });
+      })();
+    </script>
+  </body>
+</html>
